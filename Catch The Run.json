@@ -1,0 +1,78 @@
+{
+  "allowHttpBackend": false,
+  "backendCommand": "",
+  "backendFolderName": "",
+  "certificateExceptions": [],
+  "extensionViews": [],
+  "frontendCommand": "",
+  "frontendFolderName": "",
+  "manifest": {
+    "anchor": "panel",
+    "assetUrls": [],
+    "authorName": "cyghfer",
+    "bitsEnabled": false,
+    "canInstall": true,
+    "configUrl": "https://localhost:8080/config.html",
+    "configurationLocation": "none",
+    "description": "Catch The Run is an opt-in system. The Twitch Extension provides multiple easy methods for viewers to subscribe to a streamer's on-pace feed, through a channel panel and an on-stream component.\n\nThere is a separate LiveSplit integration that 1) lets speedrunners configure which games and categories they want to provide an on-pace feed for, and 2) actually triggers notifications to be sent out to viewers that have subscribed to their feed.",
+    "eulaTosUrl": "",
+    "hasChatSupport": false,
+    "iconUrl": "",
+    "iconUrls": {},
+    "id": "cod7idgr6q9bucu2gic2594y80xsu7",
+    "installationCount": -42,
+    "liveConfigUrl": "",
+    "name": "Catch The Run",
+    "panelHeight": 300,
+    "privacyPolicyUrl": "",
+    "requestIdentityLink": false,
+    "requiredBroadcasterAbilities": [],
+    "screenshotUrls": [],
+    "sku": "",
+    "state": "Testing",
+    "subscriptionsSupportLevel": "none",
+    "summary": "Catch The Run is a service allowing viewers to be notified when a speedrunner is on PB pace during a run.",
+    "supportEmail": "cyghfer@gmail.com",
+    "vendorCode": "",
+    "version": "0.0.1",
+    "viewerSummary": "",
+    "viewerUrl": "https://localhost:8080/panel.html",
+    "viewerUrls": {
+      "component": "https://localhost:8080/video_component.html",
+      "mobile": "https://localhost:8080/mobile.html",
+      "panel": "https://localhost:8080/panel.html"
+    },
+    "views": {
+      "component": {
+        "aspectHeight": 0,
+        "aspectRatioX": 300,
+        "aspectRatioY": 200,
+        "aspectWidth": 0,
+        "autoscale": true,
+        "canLinkExternalContent": false,
+        "scalePixels": 1024,
+        "size": 300,
+        "targetHeight": 4000,
+        "viewerUrl": "https://localhost:8080/video_component.html",
+        "zoom": false,
+        "zoomPixels": 0
+      },
+      "config": {
+        "canLinkExternalContent": false,
+        "viewerUrl": "https://localhost:8080/config.html"
+      },
+      "mobile": {
+        "viewerUrl": "https://localhost:8080/mobile.html"
+      },
+      "panel": {
+        "canLinkExternalContent": false,
+        "height": 300,
+        "viewerUrl": "https://localhost:8080/panel.html"
+      }
+    },
+    "whitelistedConfigUrls": [],
+    "whitelistedPanelUrls": []
+  },
+  "name": "Catch The Run",
+  "version": 1
+}
