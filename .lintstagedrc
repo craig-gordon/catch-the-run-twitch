@@ -1,11 +1,10 @@
 {
-    "linters": {
-        "**/*.+(js|jsx|ts|tsx)": [
-            "eslint"
-        ],
-        "**/*.+(js|jsx|ts|tsx|json|yml|yaml|css|less|scss|md|mdx|graphql)": [
-            "prettier --write",
-            "git add"
-        ]
-    }
+    "**/*.{js,jsx,ts,tsx}": [
+        "eslint --fix",
+        "git add"
+    ],
+    "**/*.+(js|jsx|ts|tsx|json|yml|yaml|css|less|scss|md|mdx|graphql)": [
+        "prettier --write",
+        "git add"
+    ]
 }
