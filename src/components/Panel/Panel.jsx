@@ -1,5 +1,6 @@
 import React from "react";
 import Authentication from "../../util/Authentication/Authentication";
+import Communication from "../../util/Communication/Communication";
 
 import "./Panel.css";
 
@@ -7,6 +8,7 @@ export default class App extends React.Component {
   constructor(props) {
     super(props);
     this.Authentication = new Authentication();
+    this.Communication = new Communication();
 
     // if the extension is running on twitch or dev rig, set the shorthand here. otherwise, set to null.
     this.twitch = window.Twitch ? window.Twitch.ext : null;
@@ -103,6 +105,7 @@ export default class App extends React.Component {
                 : "not shared my ID"}
               .
             </p>
+            <button onClick={this.Communication.sendSubscriptionRequest} />
           </div>
         </div>
       );
