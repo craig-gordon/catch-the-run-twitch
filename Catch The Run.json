@@ -3,9 +3,35 @@
   "backendCommand": "",
   "backendFolderName": "",
   "certificateExceptions": [],
-  "extensionViews": [],
+  "extensionViews": [
+    {
+      "id": "1",
+      "label": "Panel",
+      "channelId": "14930010",
+      "configurationAnchor": "panel",
+      "displayChannelName": "cyghfer",
+      "type": "panel",
+      "features": {
+        "isBitsEnabled": false,
+        "isChatEnabled": false,
+        "isSubscriptionStatusAvailable": false
+      },
+      "linked": false,
+      "linkedUserId": "",
+      "mode": "viewer",
+      "isPopout": false,
+      "role": "Broadcaster",
+      "x": 0,
+      "y": 0,
+      "orientation": "Portrait",
+      "frameSize": {
+        "width": 1280,
+        "height": 720
+      }
+    }
+  ],
   "frontendCommand": "",
-  "frontendFolderName": "",
+  "frontendFolderName": "C:\\Users\\Craig\\Desktop\\catch-the-run-twitch\\dist",
   "manifest": {
     "anchor": "panel",
     "assetUrls": [],
