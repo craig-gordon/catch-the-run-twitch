@@ -14,7 +14,6 @@ export default class App extends React.Component {
     this.twitch = window.Twitch ? window.Twitch.ext : null;
     this.state = {
       finishedLoading: false,
-      theme: "light",
       isVisible: true
     };
   }
@@ -77,36 +76,15 @@ export default class App extends React.Component {
   }
 
   render() {
+    console.log(this);
     if (this.state.finishedLoading && this.state.isVisible) {
       return (
         <div className="Panel">
-          <div
-            className={
-              this.state.theme === "light" ? "Panel-light" : "Panel-dark"
-            }
-          >
-            <p>This is a panel.</p>
-            <p>My token is: {this.Authentication.state.token}</p>
-            <p>My opaque ID is {this.Authentication.getOpaqueId()}.</p>
-            <div>
-              {this.Authentication.isModerator() ? (
-                <p>
-                  I am currently a mod, and here&apos;s a special mod button{" "}
-                  <input value="mod button" type="button" />
-                </p>
-              ) : (
-                "I am currently not a mod."
-              )}
-            </div>
-            <p>
-              I have{" "}
-              {this.Authentication.hasSharedId()
-                ? `shared my ID, and my user_id is ${this.Authentication.getUserId()}`
-                : "not shared my ID"}
-              .
-            </p>
-            <button onClick={this.Communication.sendSubscriptionRequest} />
-          </div>
+          <h2>Catch The Run</h2>
+          <h3>{this.twitch.configuration.broadcaster || "Streamer"}</h3>
+          <button onClick={this.Communication.sendSubscriptionRequest}>
+            Subscribe
+          </button>
         </div>
       );
     } else {

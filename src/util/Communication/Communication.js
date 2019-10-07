@@ -1,3 +1,5 @@
+import dynamodb from "aws-sdk/clients/dynamodb";
+
 export default class Communication {
   sendSubscriptionRequest() {
     return new Promise((resolve, reject) => {
@@ -21,5 +23,29 @@ export default class Communication {
           reject(e);
         });
     });
+  }
+
+  getPlayerInfo() {
+    const params = {
+      TableName: "main",
+      Key: {
+        Partition: {
+          S: "cyghfer"
+        },
+        Sort: {
+          NULL: true
+        }
+      }
+    };
+
+    dynamodb
+      .getItem(params)
+      .promise()
+      .then(data => {
+        console.log("Player data:", data);
+      })
+      .catch(err => {
+        console.log("Error fetching Player info:", err);
+      });
   }
 }
