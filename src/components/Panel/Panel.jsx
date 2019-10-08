@@ -1,6 +1,11 @@
 import React from "react";
 import Authentication from "../../util/Authentication/Authentication";
-import Communication from "../../util/Communication/Communication";
+import ExternalServices from "../../util/ExternalServices/ExternalServices";
+import Form from "react-bootstrap/Form";
+import Button from "react-bootstrap/Button";
+import sm256 from "./sm256.png";
+import smw256 from "./smw256.png";
+import sm64256 from "./sm64256.png";
 
 import "./Panel.css";
 
@@ -8,7 +13,7 @@ export default class App extends React.Component {
   constructor(props) {
     super(props);
     this.Authentication = new Authentication();
-    this.Communication = new Communication();
+    this.ExternalServices = new ExternalServices();
 
     // if the extension is running on twitch or dev rig, set the shorthand here. otherwise, set to null.
     this.twitch = window.Twitch ? window.Twitch.ext : null;
@@ -16,6 +21,34 @@ export default class App extends React.Component {
       finishedLoading: false,
       isVisible: true
     };
+
+    this.games = [
+      {
+        title: "Super Metroid",
+        image: sm256,
+        categories: [
+          "Any% No Major Glitches",
+          "100% No Major Glitches",
+          "Low% Ice Beam"
+        ]
+      },
+      {
+        title: "Super Mario World",
+        image: smw256,
+        categories: [
+          "Any%",
+          "96 Exit",
+          "Any% No Cape No Star World",
+          "Lunar Dragon",
+          "All Castles"
+        ]
+      },
+      {
+        title: "Super Mario 64",
+        image: sm64256,
+        categories: ["0 Star", "1 Star", "16 Star", "70 Star", "120 Star"]
+      }
+    ];
   }
 
   contextUpdate(context, delta) {
@@ -79,16 +112,39 @@ export default class App extends React.Component {
     console.log(this);
     if (this.state.finishedLoading && this.state.isVisible) {
       return (
-        <div className="Panel">
-          <h2>Catch The Run</h2>
-          <h3>{this.twitch.configuration.broadcaster || "Streamer"}</h3>
-          <button onClick={this.Communication.sendSubscriptionRequest}>
+        <div className="panel">
+          <section className="header-section">
+            <h2>Catch The Run</h2>
+            <h3>{this.twitch.configuration.broadcaster || "cyghfer"}</h3>
+          </section>
+          <section className="games-section">
+            {this.games.map(game => (
+              <div className="game-container" key={game.title}>
+                <img src={game.image} className="game-boxart" />
+                <h5 className="game-title">{game.title}</h5>
+                <div className="category-list">
+                  <Form>
+                    <Form.Group>
+                      {game.categories.map(category => (
+                        <Form.Check
+                          key={category}
+                          type="checkbox"
+                          label={category}
+                        />
+                      ))}
+                    </Form.Group>
+                  </Form>
+                </div>
+              </div>
+            ))}
+          </section>
+          <Button onClick={this.ExternalServices.sendSubscriptionRequest}>
             Subscribe
-          </button>
+          </Button>
         </div>
       );
     } else {
-      return <div className="Panel"></div>;
+      return <div className="panel"></div>;
     }
   }
 }

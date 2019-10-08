@@ -1,6 +1,6 @@
 import dynamodb from "aws-sdk/clients/dynamodb";
 
-export default class Communication {
+export default class ExternalServices {
   sendSubscriptionRequest() {
     return new Promise((resolve, reject) => {
       fetch(

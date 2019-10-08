@@ -1,14 +1,45 @@
-.Panel {
+.panel {
   font-family: Arial, Helvetica, sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 1em;
 }
 
-.Panel-light {
-  color: #232127;
+.header-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 1em;
 }
 
-.Panel-dark {
-  color: #e5e3e8;
+.header-section > * {
+  margin: 0;
+}
+
+.game-container {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: auto 1fr;
+  grid-column-gap: 0.5em;
+}
+
+.game-title {
+  margin: 0;
+  transform: translateY(-4px);
+}
+
+.game-boxart {
+  height: 90px;
+  width: 64px;
+  grid-row: span 2;
+  grid-column: span 1;
+}
+
+.category-list .form-group {
+  margin: 0;
+}
+
+.form-check-label {
+  font-size: 14px;
 }

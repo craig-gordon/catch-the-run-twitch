@@ -92,7 +92,8 @@
       },
       "panel": {
         "canLinkExternalContent": false,
-        "height": 300,
+        "height": 496,
+        "width": 318,
         "viewerUrl": "https://localhost:8080/panel.html"
       }
     },
