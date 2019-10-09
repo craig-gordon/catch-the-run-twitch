@@ -2,12 +2,18 @@ import React from "react";
 import Authentication from "../../util/Authentication/Authentication";
 import ExternalServices from "../../util/ExternalServices/ExternalServices";
 import Form from "react-bootstrap/Form";
+import InputGroup from "react-bootstrap/InputGroup";
+import DropdownButton from "react-bootstrap/DropdownButton";
+import Dropdown from "react-bootstrap/Dropdown";
 import Button from "react-bootstrap/Button";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSms, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import sm256 from "./sm256.png";
 import smw256 from "./smw256.png";
 import sm64256 from "./sm64256.png";
 
 import "./Panel.css";
+import FormControl from "react-bootstrap/FormControl";
 
 export default class App extends React.Component {
   constructor(props) {
@@ -125,10 +131,12 @@ export default class App extends React.Component {
                 <div className="category-list">
                   <Form>
                     <Form.Group>
-                      {game.categories.map(category => (
+                      {game.categories.map((category, idx) => (
                         <Form.Check
+                          custom
                           key={category}
                           type="checkbox"
+                          id={`${game.title}-${idx}`}
                           label={category}
                         />
                       ))}
@@ -137,6 +145,28 @@ export default class App extends React.Component {
                 </div>
               </div>
             ))}
+          </section>
+          <section className="protocol-input-section">
+            <InputGroup size="sm">
+              <InputGroup.Prepend>
+                <InputGroup.Text>
+                  <FontAwesomeIcon icon={faSms} />
+                </InputGroup.Text>
+              </InputGroup.Prepend>
+              <FormControl
+                placeholder="Phone Number"
+                aria-label="Phone Number"
+              />
+              <InputGroup.Prepend>
+                <InputGroup.Text>
+                  <FontAwesomeIcon icon={faEnvelope} />
+                </InputGroup.Text>
+              </InputGroup.Prepend>
+              <FormControl
+                placeholder="Email Address"
+                aria-label="Email Address"
+              />
+            </InputGroup>
           </section>
           <Button onClick={this.ExternalServices.sendSubscriptionRequest}>
             Subscribe
