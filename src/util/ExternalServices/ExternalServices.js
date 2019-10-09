@@ -1,7 +1,9 @@
-import dynamodb from "aws-sdk/clients/dynamodb";
+import AWS from "aws-sdk";
+import s3 from "aws-sdk/clients/s3";
+import DynamoDB from "aws-sdk/clients/dynamodb";
 
 export default class ExternalServices {
-  sendSubscriptionRequest() {
+  sendSubscriptionRequest(player, protocol, endpoint) {
     return new Promise((resolve, reject) => {
       fetch(
         "https://sebb5pvixl.execute-api.us-east-1.amazonaws.com/dev/subscription/",
@@ -11,9 +13,9 @@ export default class ExternalServices {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            Player: "cyghfer",
-            Protocol: "SMS",
-            Endpoint: "+16969696969"
+            Player: player,
+            Protocol: protocol,
+            Endpoint: endpoint
           })
         }
       )
@@ -25,27 +27,40 @@ export default class ExternalServices {
     });
   }
 
-  getPlayerInfo() {
+  getPlayerInfo(player) {
     const params = {
-      TableName: "main",
-      Key: {
-        Partition: {
-          S: "cyghfer"
+      TableName: "Main",
+      KeyConditionExpression:
+        "#Partition = :Partition AND begins_with(#Sort, :Sort)",
+      ExpressionAttributeNames: {
+        "#Partition": "Partition",
+        "#Sort": "Sort"
+      },
+      ExpressionAttributeValues: {
+        ":Partition": {
+          S: player
         },
-        Sort: {
-          NULL: true
+        ":Sort": {
+          S: "FEED"
         }
       }
     };
 
-    dynamodb
-      .getItem(params)
+    const dynamoClient = new DynamoDB({
+      endpoint: "https://dynamodb.us-east-1.amazonaws.com",
+      accessKeyId: ".",
+      secretAccessKey: ".",
+      region: "."
+    });
+
+    dynamoClient
+      .query(params)
       .promise()
       .then(data => {
         console.log("Player data:", data);
       })
       .catch(err => {
-        console.log("Error fetching Player info:", err);
+        console.log("Error fetching Player data:", err);
       });
   }
 }

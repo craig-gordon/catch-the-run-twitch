@@ -3,17 +3,14 @@ import Authentication from "../../util/Authentication/Authentication";
 import ExternalServices from "../../util/ExternalServices/ExternalServices";
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
-import DropdownButton from "react-bootstrap/DropdownButton";
-import Dropdown from "react-bootstrap/Dropdown";
+import FormControl from "react-bootstrap/FormControl";
 import Button from "react-bootstrap/Button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSms, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import sm256 from "./sm256.png";
 import smw256 from "./smw256.png";
 import sm64256 from "./sm64256.png";
-
 import "./Panel.css";
-import FormControl from "react-bootstrap/FormControl";
 
 export default class App extends React.Component {
   constructor(props) {
@@ -74,6 +71,8 @@ export default class App extends React.Component {
   }
 
   componentDidMount() {
+    this.ExternalServices.getPlayerInfo("cyghfer");
+
     if (this.twitch) {
       this.twitch.onAuthorized(auth => {
         this.Authentication.setToken(auth.token, auth.userId);
