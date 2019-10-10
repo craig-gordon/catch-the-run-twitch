@@ -15,6 +15,11 @@ import "./Panel.css";
 export default class App extends React.Component {
   constructor(props) {
     super(props);
+    this.images = {
+      sm: sm256,
+      smw: smw256,
+      sm64: sm64256
+    };
     this.Authentication = new Authentication();
     this.ExternalServices = new ExternalServices();
 
@@ -22,36 +27,42 @@ export default class App extends React.Component {
     this.twitch = window.Twitch ? window.Twitch.ext : null;
     this.state = {
       finishedLoading: false,
-      isVisible: true
+      isVisible: true,
+      games: undefined,
+      viewerPhoneNumber: undefined,
+      viewerEmailAddress: undefined
     };
 
-    this.games = [
-      {
-        title: "Super Metroid",
-        image: sm256,
-        categories: [
-          "Any% No Major Glitches",
-          "100% No Major Glitches",
-          "Low% Ice Beam"
-        ]
-      },
-      {
-        title: "Super Mario World",
-        image: smw256,
-        categories: [
-          "Any%",
-          "96 Exit",
-          "Any% No Cape No Star World",
-          "Lunar Dragon",
-          "All Castles"
-        ]
-      },
-      {
-        title: "Super Mario 64",
-        image: sm64256,
-        categories: ["0 Star", "1 Star", "16 Star", "70 Star", "120 Star"]
-      }
-    ];
+    // this.games = [
+    //   {
+    //     title: "Super Metroid",
+    //     image: sm256,
+    //     categories: [
+    //       "Any% No Major Glitches",
+    //       "100% No Major Glitches",
+    //       "Low% Ice Beam"
+    //     ]
+    //   },
+    //   {
+    //     title: "Super Mario World",
+    //     image: smw256,
+    //     categories: [
+    //       "Any%",
+    //       "96 Exit",
+    //       "Any% No Cape No Star World",
+    //       "Lunar Dragon",
+    //       "All Castles"
+    //     ]
+    //   },
+    //   {
+    //     title: "Super Mario 64",
+    //     image: sm64256,
+    //     categories: ["0 Star", "1 Star", "16 Star", "70 Star", "120 Star"]
+    //   }
+    // ];
+    this.toggleCategory = this.toggleCategory.bind(this);
+    this.updateInput = this.updateInput.bind(this);
+    this.subscribeViewerToPlayer = this.subscribeViewerToPlayer.bind(this);
   }
 
   contextUpdate(context, delta) {
@@ -71,19 +82,55 @@ export default class App extends React.Component {
   }
 
   componentDidMount() {
-    this.ExternalServices.getPlayerInfo("cyghfer");
+    this.ExternalServices.getPlayerFeedInfo("cyghfer")
+      .then(data => {
+        const games = [];
+
+        const rawCategories = data.Items.filter(item =>
+          item.Sort.S.includes("FEED|")
+        ).map(item => item.Sort.S.split("|")[2]);
+
+        rawCategories.forEach(category => {
+          const [gameTitle, categoryName] = category.split("_");
+
+          const categoryObj = {
+            name: categoryName,
+            selected: true
+          };
+
+          const idx = games.reduce((idx, currGame, currIdx) => {
+            if (games[currIdx].title === gameTitle) idx = currIdx;
+            return idx;
+          }, -1);
+
+          if (idx === -1) {
+            games.push({
+              title: gameTitle,
+              image: this.images[gameTitle],
+              categories: [categoryObj]
+            });
+          } else {
+            games[idx].categories.push(categoryObj);
+          }
+        });
+
+        this.setState({ games, finishedLoading: true });
+      })
+      .catch(err => {
+        console.log("error:", err);
+      });
 
     if (this.twitch) {
       this.twitch.onAuthorized(auth => {
         this.Authentication.setToken(auth.token, auth.userId);
-        if (!this.state.finishedLoading) {
-          // if the component hasn't finished loading (as in we've not set up after getting a token), let's set it up now.
+        // if (!this.state.finishedLoading ) {
+        //   // if the component hasn't finished loading (as in we've not set up after getting a token), let's set it up now.
 
-          // now we've done the setup for the component, let's set the state to true to force a rerender with the correct data.
-          this.setState(() => {
-            return { finishedLoading: true };
-          });
-        }
+        //   // now we've done the setup for the component, let's set the state to true to force a rerender with the correct data.
+        //   this.setState(() => {
+        //     return { finishedLoading: true };
+        //   });
+        // }
       });
 
       this.twitch.listen("broadcast", (target, contentType, body) => {
@@ -113,6 +160,48 @@ export default class App extends React.Component {
     }
   }
 
+  toggleCategory(gameTitle, categoryIdx) {
+    this.state.games.filter(game => game.title === gameTitle)[0].categories[
+      categoryIdx
+    ].selected = !this.state.games.filter(game => game.title === gameTitle)[0]
+      .categories[categoryIdx].selected;
+    this.setState({ games: this.state.games });
+  }
+
+  updateInput(property, value) {
+    const stateObj = {};
+    stateObj[property] = value;
+    this.setState(stateObj);
+  }
+
+  subscribeViewerToPlayer() {
+    let phoneSubscription;
+    let emailSubscription;
+
+    if (this.state.viewerPhoneNumber !== undefined) {
+      phoneSubscription = this.ExternalServices.sendSubscriptionRequest(
+        "cyghfer",
+        "SMS",
+        this.state.viewerPhoneNumber
+      );
+    }
+
+    if (this.state.viewerEmailAddress !== undefined) {
+      emailSubscription = this.ExternalServices.sendSubscriptionRequest(
+        "cyghfer",
+        "Email",
+        this.state.viewerEmailAddress
+      );
+    }
+
+    Promise.all([phoneSubscription, emailSubscription])
+      .then(([phoneRes, emailRes]) => {
+        console.log("phoneRes:", phoneRes);
+        console.log("emailRes:", emailRes);
+      })
+      .catch(err => console.log("err:", err));
+  }
+
   render() {
     console.log(this);
     if (this.state.finishedLoading && this.state.isVisible) {
@@ -123,7 +212,7 @@ export default class App extends React.Component {
             <h3>{this.twitch.configuration.broadcaster || "cyghfer"}</h3>
           </section>
           <section className="games-section">
-            {this.games.map(game => (
+            {this.state.games.map(game => (
               <div className="game-container" key={game.title}>
                 <img src={game.image} className="game-boxart" />
                 <h5 className="game-title">{game.title}</h5>
@@ -133,10 +222,12 @@ export default class App extends React.Component {
                       {game.categories.map((category, idx) => (
                         <Form.Check
                           custom
-                          key={category}
+                          key={category.name}
+                          checked={category.selected}
                           type="checkbox"
                           id={`${game.title}-${idx}`}
-                          label={category}
+                          label={category.name}
+                          onChange={() => this.toggleCategory(game.title, idx)}
                         />
                       ))}
                     </Form.Group>
@@ -153,8 +244,12 @@ export default class App extends React.Component {
                 </InputGroup.Text>
               </InputGroup.Prepend>
               <FormControl
+                value={this.state.viewerPhoneNumber}
                 placeholder="Phone Number"
                 aria-label="Phone Number"
+                onChange={e =>
+                  this.updateInput("viewerPhoneNumber", e.target.value)
+                }
               />
               <InputGroup.Prepend>
                 <InputGroup.Text>
@@ -162,14 +257,16 @@ export default class App extends React.Component {
                 </InputGroup.Text>
               </InputGroup.Prepend>
               <FormControl
+                value={this.state.viewerEmailAddress}
                 placeholder="Email Address"
                 aria-label="Email Address"
+                onChange={e =>
+                  this.updateInput("viewerEmailAddress", e.target.value)
+                }
               />
             </InputGroup>
           </section>
-          <Button onClick={this.ExternalServices.sendSubscriptionRequest}>
-            Subscribe
-          </Button>
+          <Button onClick={this.subscribeViewerToPlayer}>Subscribe</Button>
         </div>
       );
     } else {

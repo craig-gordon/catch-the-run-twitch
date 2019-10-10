@@ -18,16 +18,11 @@ export default class ExternalServices {
             Endpoint: endpoint
           })
         }
-      )
-        .then(response => resolve(response))
-        .catch(e => {
-          console.log("error:", e);
-          reject(e);
-        });
+      );
     });
   }
 
-  getPlayerInfo(player) {
+  getPlayerFeedInfo(player) {
     const params = {
       TableName: "Main",
       KeyConditionExpression:
@@ -53,14 +48,6 @@ export default class ExternalServices {
       region: "."
     });
 
-    dynamoClient
-      .query(params)
-      .promise()
-      .then(data => {
-        console.log("Player data:", data);
-      })
-      .catch(err => {
-        console.log("Error fetching Player data:", err);
-      });
+    return dynamoClient.query(params).promise();
   }
 }
