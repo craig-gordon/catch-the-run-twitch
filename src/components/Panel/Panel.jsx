@@ -25,41 +25,17 @@ export default class App extends React.Component {
 
     // if the extension is running on twitch or dev rig, set the shorthand here. otherwise, set to null.
     this.twitch = window.Twitch ? window.Twitch.ext : null;
+
     this.state = {
       finishedLoading: false,
       isVisible: true,
+      playerName: undefined,
+      playerTopicArn: undefined,
       games: undefined,
       viewerPhoneNumber: undefined,
       viewerEmailAddress: undefined
     };
 
-    // this.games = [
-    //   {
-    //     title: "Super Metroid",
-    //     image: sm256,
-    //     categories: [
-    //       "Any% No Major Glitches",
-    //       "100% No Major Glitches",
-    //       "Low% Ice Beam"
-    //     ]
-    //   },
-    //   {
-    //     title: "Super Mario World",
-    //     image: smw256,
-    //     categories: [
-    //       "Any%",
-    //       "96 Exit",
-    //       "Any% No Cape No Star World",
-    //       "Lunar Dragon",
-    //       "All Castles"
-    //     ]
-    //   },
-    //   {
-    //     title: "Super Mario 64",
-    //     image: sm64256,
-    //     categories: ["0 Star", "1 Star", "16 Star", "70 Star", "120 Star"]
-    //   }
-    // ];
     this.toggleCategory = this.toggleCategory.bind(this);
     this.updateInput = this.updateInput.bind(this);
     this.subscribeViewerToPlayer = this.subscribeViewerToPlayer.bind(this);
@@ -82,64 +58,57 @@ export default class App extends React.Component {
   }
 
   componentDidMount() {
-    this.ExternalServices.getPlayerFeedInfo("cyghfer")
-      .then(data => {
-        const games = [];
-
-        const rawCategories = data.Items.filter(item =>
-          item.Sort.S.includes("FEED|")
-        ).map(item => item.Sort.S.split("|")[2]);
-
-        rawCategories.forEach(category => {
-          const [gameTitle, categoryName] = category.split("_");
-
-          const categoryObj = {
-            name: categoryName,
-            selected: true
-          };
-
-          const idx = games.reduce((idx, currGame, currIdx) => {
-            if (games[currIdx].title === gameTitle) idx = currIdx;
-            return idx;
-          }, -1);
-
-          if (idx === -1) {
-            games.push({
-              title: gameTitle,
-              image: this.images[gameTitle],
-              categories: [categoryObj]
-            });
-          } else {
-            games[idx].categories.push(categoryObj);
-          }
-        });
-
-        this.setState({ games, finishedLoading: true });
-      })
-      .catch(err => {
-        console.log("error:", err);
-      });
-
     if (this.twitch) {
       this.twitch.onAuthorized(auth => {
         this.Authentication.setToken(auth.token, auth.userId);
-        // if (!this.state.finishedLoading ) {
-        //   // if the component hasn't finished loading (as in we've not set up after getting a token), let's set it up now.
 
-        //   // now we've done the setup for the component, let's set the state to true to force a rerender with the correct data.
-        //   this.setState(() => {
-        //     return { finishedLoading: true };
-        //   });
-        // }
-      });
+        this.ExternalServices.getPlayerFeedInfo(
+          this.Authentication.state.user_id
+        )
+          .then(data => {
+            const [playerName, playerTopicArn] = data.Items[0]["G1S"].S.split(
+              "|"
+            );
+            const games = [];
 
-      this.twitch.listen("broadcast", (target, contentType, body) => {
-        this.twitch.rig.log(
-          `New PubSub message!\n${target}\n${contentType}\n${body}`
-        );
-        // now that you've got a listener, do something with the result...
+            const rawCategories = data.Items.filter(item =>
+              item.SRT.S.includes("F|")
+            ).map(item => item.SRT.S.split("|")[2]);
 
-        // do something...
+            rawCategories.forEach(category => {
+              const [gameTitle, categoryName, gameAbbrev] = category.split("_");
+
+              const categoryObj = {
+                name: categoryName,
+                selected: true
+              };
+
+              const idx = games.reduce((idx, currGame, currIdx) => {
+                if (games[currIdx].title === gameTitle) idx = currIdx;
+                return idx;
+              }, -1);
+
+              if (idx === -1) {
+                games.push({
+                  title: gameTitle,
+                  image: this.images[gameAbbrev],
+                  categories: [categoryObj]
+                });
+              } else {
+                games[idx].categories.push(categoryObj);
+              }
+            });
+
+            this.setState({
+              playerName,
+              playerTopicArn,
+              games,
+              finishedLoading: true
+            });
+          })
+          .catch(err => {
+            console.log("error:", err);
+          });
       });
 
       this.twitch.onVisibilityChanged((isVisible, _c) => {
@@ -178,17 +147,21 @@ export default class App extends React.Component {
     let phoneSubscription;
     let emailSubscription;
 
-    if (this.state.viewerPhoneNumber !== undefined) {
+    if (this.state.viewerPhoneNumber) {
       phoneSubscription = this.ExternalServices.sendSubscriptionRequest(
-        "cyghfer",
+        this.state.playerTopicArn,
+        this.Authentication.state.user_id,
+        this.state.playerUsername,
         "SMS",
         this.state.viewerPhoneNumber
       );
     }
 
-    if (this.state.viewerEmailAddress !== undefined) {
+    if (this.state.viewerEmailAddress) {
       emailSubscription = this.ExternalServices.sendSubscriptionRequest(
-        "cyghfer",
+        this.state.playerTopicArn,
+        this.Authentication.state.user_id,
+        this.state.playerUsername,
         "Email",
         this.state.viewerEmailAddress
       );
@@ -209,7 +182,7 @@ export default class App extends React.Component {
         <div className="panel">
           <section className="header-section">
             <h2>Catch The Run</h2>
-            <h3>{this.twitch.configuration.broadcaster || "cyghfer"}</h3>
+            <h3>{this.state.playerUsername}</h3>
           </section>
           <section className="games-section">
             {this.state.games.map(game => (

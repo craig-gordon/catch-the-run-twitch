@@ -3,40 +3,42 @@ import s3 from "aws-sdk/clients/s3";
 import DynamoDB from "aws-sdk/clients/dynamodb";
 
 export default class ExternalServices {
-  sendSubscriptionRequest(player, protocol, endpoint) {
-    return new Promise((resolve, reject) => {
-      fetch(
-        "https://sebb5pvixl.execute-api.us-east-1.amazonaws.com/dev/subscription/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            Player: player,
-            Protocol: protocol,
-            Endpoint: endpoint
-          })
-        }
-      );
-    });
+  sendSubscriptionRequest(
+    playerTopicArn,
+    playerTwitchId,
+    playerUsername,
+    protocol,
+    endpoint
+  ) {
+    return fetch(
+      "https://sebb5pvixl.execute-api.us-east-1.amazonaws.com/dev/subscription/",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          PlayerTopicArn: playerTopicArn,
+          PlayerTwitchId: playerTwitchId,
+          Player: playerUsername,
+          Protocol: protocol,
+          Endpoint: endpoint
+        })
+      }
+    );
   }
 
-  getPlayerFeedInfo(player) {
+  getPlayerFeedInfo(playerTwitchId) {
+    console.log("playerTwitchId:", playerTwitchId);
     const params = {
       TableName: "Main",
-      KeyConditionExpression:
-        "#Partition = :Partition AND begins_with(#Sort, :Sort)",
-      ExpressionAttributeNames: {
-        "#Partition": "Partition",
-        "#Sort": "Sort"
-      },
+      KeyConditionExpression: "PRT = :PRT AND begins_with(SRT, :SRT)",
       ExpressionAttributeValues: {
-        ":Partition": {
-          S: player
+        ":PRT": {
+          S: playerTwitchId
         },
-        ":Sort": {
-          S: "FEED"
+        ":SRT": {
+          S: "F|CTG"
         }
       }
     };
@@ -45,7 +47,7 @@ export default class ExternalServices {
       endpoint: "https://dynamodb.us-east-1.amazonaws.com",
       accessKeyId: ".",
       secretAccessKey: ".",
-      region: "."
+      region: "us-east-1"
     });
 
     return dynamoClient.query(params).promise();
