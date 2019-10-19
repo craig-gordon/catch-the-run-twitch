@@ -1,14 +1,14 @@
 import AWS from "aws-sdk";
-import s3 from "aws-sdk/clients/s3";
+import S3 from "aws-sdk/clients/s3";
 import DynamoDB from "aws-sdk/clients/dynamodb";
 
 export default class ExternalServices {
   sendSubscriptionRequest(
-    playerTopicArn,
-    playerTwitchId,
-    playerUsername,
-    protocol,
-    endpoint
+    PlayerTopicArn,
+    PlayerTwitchId,
+    PlayerUsername,
+    Protocol,
+    Endpoint
   ) {
     return fetch(
       "https://sebb5pvixl.execute-api.us-east-1.amazonaws.com/dev/subscription/",
@@ -18,18 +18,24 @@ export default class ExternalServices {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          PlayerTopicArn: playerTopicArn,
-          PlayerTwitchId: playerTwitchId,
-          Player: playerUsername,
-          Protocol: protocol,
-          Endpoint: endpoint
+          PlayerTopicArn,
+          PlayerTwitchId,
+          PlayerUsername,
+          Protocol,
+          Endpoint
         })
       }
     );
   }
 
   getPlayerFeedInfo(playerTwitchId) {
-    console.log("playerTwitchId:", playerTwitchId);
+    const dynamoClient = new DynamoDB({
+      endpoint: "https://dynamodb.us-east-1.amazonaws.com",
+      accessKeyId: ".",
+      secretAccessKey: ".",
+      region: "us-east-1"
+    });
+
     const params = {
       TableName: "Main",
       KeyConditionExpression: "PRT = :PRT AND begins_with(SRT, :SRT)",
@@ -42,13 +48,6 @@ export default class ExternalServices {
         }
       }
     };
-
-    const dynamoClient = new DynamoDB({
-      endpoint: "https://dynamodb.us-east-1.amazonaws.com",
-      accessKeyId: ".",
-      secretAccessKey: ".",
-      region: "us-east-1"
-    });
 
     return dynamoClient.query(params).promise();
   }

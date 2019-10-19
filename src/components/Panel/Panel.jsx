@@ -29,7 +29,7 @@ export default class App extends React.Component {
     this.state = {
       finishedLoading: false,
       isVisible: true,
-      playerName: undefined,
+      playerUsername: undefined,
       playerTopicArn: undefined,
       games: undefined,
       viewerPhoneNumber: undefined,
@@ -66,9 +66,9 @@ export default class App extends React.Component {
           this.Authentication.state.user_id
         )
           .then(data => {
-            const [playerName, playerTopicArn] = data.Items[0]["G1S"].S.split(
-              "|"
-            );
+            const [playerUsername, playerTopicArn] = data.Items[0][
+              "G1S"
+            ].S.split("|");
             const games = [];
 
             const rawCategories = data.Items.filter(item =>
@@ -84,14 +84,14 @@ export default class App extends React.Component {
               };
 
               const idx = games.reduce((idx, currGame, currIdx) => {
-                if (games[currIdx].title === gameTitle) idx = currIdx;
+                if (currGame.title === gameTitle) idx = currIdx;
                 return idx;
               }, -1);
 
               if (idx === -1) {
                 games.push({
                   title: gameTitle,
-                  image: this.images[gameAbbrev],
+                  image: `https://catch-the-run-boxart.s3.us-east-2.amazonaws.com/${gameAbbrev}256.png`,
                   categories: [categoryObj]
                 });
               } else {
@@ -100,7 +100,7 @@ export default class App extends React.Component {
             });
 
             this.setState({
-              playerName,
+              playerUsername,
               playerTopicArn,
               games,
               finishedLoading: true
