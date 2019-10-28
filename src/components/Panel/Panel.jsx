@@ -1,6 +1,7 @@
 import React from "react";
 import Authentication from "../../util/Authentication/Authentication";
 import ExternalServices from "../../util/ExternalServices/ExternalServices";
+import { urlBase64ToUint8Array } from "../../util/ServiceWorker/ServiceWorkerHelpers";
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import FormControl from "react-bootstrap/FormControl";
@@ -10,6 +11,7 @@ import { faSms, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import sm256 from "./sm256.png";
 import smw256 from "./smw256.png";
 import sm64256 from "./sm64256.png";
+import "../../util/ServiceWorker/ServiceWorker.js";
 import "./Panel.css";
 
 export default class App extends React.Component {
@@ -31,13 +33,10 @@ export default class App extends React.Component {
       isVisible: true,
       playerUsername: undefined,
       playerTopicArn: undefined,
-      games: undefined,
-      viewerPhoneNumber: undefined,
-      viewerEmailAddress: undefined
+      games: undefined
     };
 
     this.toggleCategory = this.toggleCategory.bind(this);
-    this.updateInput = this.updateInput.bind(this);
     this.subscribeViewerToPlayer = this.subscribeViewerToPlayer.bind(this);
   }
 
@@ -62,9 +61,7 @@ export default class App extends React.Component {
       this.twitch.onAuthorized(auth => {
         this.Authentication.setToken(auth.token, auth.userId);
 
-        this.ExternalServices.getPlayerFeedInfo(
-          this.Authentication.state.user_id
-        )
+        this.ExternalServices.getPlayerFeedInfo("cyghfer")
           .then(data => {
             const [playerUsername, playerTopicArn] = data.Items[0][
               "G1S"
@@ -137,40 +134,43 @@ export default class App extends React.Component {
     this.setState({ games: this.state.games });
   }
 
-  updateInput(property, value) {
-    const stateObj = {};
-    stateObj[property] = value;
-    this.setState(stateObj);
-  }
-
   subscribeViewerToPlayer() {
-    let phoneSubscription;
-    let emailSubscription;
+    navigator.serviceWorker.register("ServiceWorker.js");
 
-    if (this.state.viewerPhoneNumber) {
-      phoneSubscription = this.ExternalServices.sendSubscriptionRequest(
-        this.state.playerTopicArn,
-        this.Authentication.state.user_id,
-        this.state.playerUsername,
-        "SMS",
-        this.state.viewerPhoneNumber
-      );
-    }
+    navigator.serviceWorker.ready
+      .then(registration => {
+        return Promise.all([
+          registration,
+          registration.pushManager.getSubscription()
+        ]);
+      })
+      .then(([registration, existingSubscription]) => {
+        console.log(
+          "registration:",
+          registration,
+          "existingSubscription:",
+          existingSubscription
+        );
+        if (existingSubscription) return existingSubscription;
 
-    if (this.state.viewerEmailAddress) {
-      emailSubscription = this.ExternalServices.sendSubscriptionRequest(
-        this.state.playerTopicArn,
-        this.Authentication.state.user_id,
-        this.state.playerUsername,
-        "Email",
-        this.state.viewerEmailAddress
-      );
-    }
+        const vapidPublicKey = ".";
+        const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
 
-    Promise.all([phoneSubscription, emailSubscription])
-      .then(([phoneRes, emailRes]) => {
-        console.log("phoneRes:", phoneRes);
-        console.log("emailRes:", emailRes);
+        return registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: convertedVapidKey
+        });
+      })
+      .then(newSubscription => {
+        return this.ExternalServices.sendSubscriptionRequest(
+          this.Authentication.state.user_id,
+          this.state.playerUsername,
+          newSubscription.endpoint,
+          "WEBPUSH"
+        );
+      })
+      .then(res => {
+        console.log("response:", res);
       })
       .catch(err => console.log("err:", err));
   }
@@ -208,36 +208,6 @@ export default class App extends React.Component {
                 </div>
               </div>
             ))}
-          </section>
-          <section className="protocol-input-section">
-            <InputGroup size="sm">
-              <InputGroup.Prepend>
-                <InputGroup.Text>
-                  <FontAwesomeIcon icon={faSms} />
-                </InputGroup.Text>
-              </InputGroup.Prepend>
-              <FormControl
-                value={this.state.viewerPhoneNumber}
-                placeholder="Phone Number"
-                aria-label="Phone Number"
-                onChange={e =>
-                  this.updateInput("viewerPhoneNumber", e.target.value)
-                }
-              />
-              <InputGroup.Prepend>
-                <InputGroup.Text>
-                  <FontAwesomeIcon icon={faEnvelope} />
-                </InputGroup.Text>
-              </InputGroup.Prepend>
-              <FormControl
-                value={this.state.viewerEmailAddress}
-                placeholder="Email Address"
-                aria-label="Email Address"
-                onChange={e =>
-                  this.updateInput("viewerEmailAddress", e.target.value)
-                }
-              />
-            </InputGroup>
           </section>
           <Button onClick={this.subscribeViewerToPlayer}>Subscribe</Button>
         </div>

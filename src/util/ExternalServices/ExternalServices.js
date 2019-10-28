@@ -1,14 +1,12 @@
-import AWS from "aws-sdk";
-import S3 from "aws-sdk/clients/s3";
 import DynamoDB from "aws-sdk/clients/dynamodb";
 
 export default class ExternalServices {
   sendSubscriptionRequest(
-    PlayerTopicArn,
     PlayerTwitchId,
     PlayerUsername,
     Protocol,
-    Endpoint
+    Endpoint,
+    FilterPolicy = null
   ) {
     return fetch(
       "https://sebb5pvixl.execute-api.us-east-1.amazonaws.com/dev/subscription/",
@@ -18,11 +16,11 @@ export default class ExternalServices {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          PlayerTopicArn,
           PlayerTwitchId,
           PlayerUsername,
           Protocol,
-          Endpoint
+          Endpoint,
+          FilterPolicy
         })
       }
     );
@@ -31,8 +29,8 @@ export default class ExternalServices {
   getPlayerFeedInfo(playerTwitchId) {
     const dynamoClient = new DynamoDB({
       endpoint: "https://dynamodb.us-east-1.amazonaws.com",
-      accessKeyId: ".",
-      secretAccessKey: ".",
+      accessKeyId: "AKIAYGOXM6CJTCGJ5S5Z",
+      secretAccessKey: "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",
       region: "us-east-1"
     });
 

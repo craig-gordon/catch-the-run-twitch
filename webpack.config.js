@@ -6,9 +6,9 @@ const CleanWebpackPlugin = require("clean-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 // defines where the bundle file will live
-const bundlePath = path.resolve(__dirname, "dist/");
+const bundlePath = path.resolve(__dirname, "dist/"); // eslint-disable-line no-undef
 
-module.exports = (_env, argv) => {
+module.exports = (_env, argv) => { // eslint-disable-line no-undef
   let entryPoints = {
     VideoComponent: {
       path: "./src/VideoComponent.js",
@@ -50,7 +50,7 @@ module.exports = (_env, argv) => {
     new webpack.HotModuleReplacementPlugin()
   ];
 
-  for (name in entryPoints) {
+  for (name in entryPoints) { // eslint-disable-line no-global-assign
     if (entryPoints[name].build) {
       entry[name] = entryPoints[name].path;
       if (argv.mode === "production") {
@@ -89,6 +89,13 @@ module.exports = (_env, argv) => {
           options: {
             name: "img/[name].[ext]"
           }
+        },
+        {
+          test: /ServiceWorker.js$/,
+          loader: "file-loader",
+          options: {
+            name: "[name].[ext]"
+          }
         }
       ]
     },
@@ -102,7 +109,7 @@ module.exports = (_env, argv) => {
 
   if (argv.mode === "development") {
     config.devServer = {
-      contentBase: path.join(__dirname, "public"),
+      contentBase: path.join(__dirname, "public"), // eslint-disable-line no-undef
       host: argv.devrig ? "localhost.rig.twitch.tv" : "localhost",
       headers: {
         "Access-Control-Allow-Origin": "*"
