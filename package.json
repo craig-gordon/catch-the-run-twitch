@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "server": "node ebs/index.js",
     "lint": "eslint src",
     "lint-fix": "eslint --fix src",
     "prettier": "prettier \"**/*.+(js|jsx|ts|tsx|json|yml|yaml|css|less|scss|md|mdx|graphql)\"",
@@ -60,7 +61,6 @@
     "@fortawesome/free-solid-svg-icons": "^5.11.2",
     "@fortawesome/react-fontawesome": "^0.1.5",
     "aws-sdk": "^2.543.0",
-    "jsonwebtoken": "^8.3.0",
     "react": "^16.3.2",
     "react-bootstrap": "^1.0.0-beta.14",
     "react-dom": "^16.3.2"

@@ -8,20 +8,12 @@ import FormControl from "react-bootstrap/FormControl";
 import Button from "react-bootstrap/Button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSms, faEnvelope } from "@fortawesome/free-solid-svg-icons";
-import sm256 from "./sm256.png";
-import smw256 from "./smw256.png";
-import sm64256 from "./sm64256.png";
 import "../../util/ServiceWorker/ServiceWorker.js";
 import "./Panel.css";
 
 export default class App extends React.Component {
   constructor(props) {
     super(props);
-    this.images = {
-      sm: sm256,
-      smw: smw256,
-      sm64: sm64256
-    };
     this.Authentication = new Authentication();
     this.ExternalServices = new ExternalServices();
 
@@ -161,11 +153,12 @@ export default class App extends React.Component {
           applicationServerKey: convertedVapidKey
         });
       })
-      .then(newSubscription => {
+      .then(subscription => {
+        console.log("stringified subscription:", JSON.stringify(subscription));
         return this.ExternalServices.sendSubscriptionRequest(
           this.Authentication.state.user_id,
           this.state.playerUsername,
-          newSubscription.endpoint,
+          JSON.stringify(subscription),
           "WEBPUSH"
         );
       })
