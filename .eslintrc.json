@@ -6,8 +6,7 @@
   },
   "extends": [
     "eslint:recommended",
-    "plugin:react/recommended",
-    "eslint-config-prettier"
+    "plugin:react/recommended"
   ],
   "globals": {
     "Atomics": "readonly",
@@ -21,7 +20,9 @@
     "ecmaVersion": 2018,
     "sourceType": "module"
   },
-  "plugins": ["react"],
+  "plugins": [
+    "react"
+  ],
   "rules": {
     "space-before-function-paren": [
       "error",
@@ -34,10 +35,15 @@
     "camelcase": [
       "error",
       {
-        "allow": ["opaque_id", "user_id"]
+        "allow": [
+          "opaque_id",
+          "user_id"
+        ]
       }
     ],
-    "prefer-promise-reject-errors": ["off"],
+    "prefer-promise-reject-errors": [
+      "off"
+    ],
     "no-unused-vars": "off"
   },
   "settings": {

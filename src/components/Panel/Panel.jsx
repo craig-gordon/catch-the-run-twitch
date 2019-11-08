@@ -1,21 +1,15 @@
-import React from "react";
-import Authentication from "../../util/Authentication/Authentication";
-import ExternalServices from "../../util/ExternalServices/ExternalServices";
-import { urlBase64ToUint8Array } from "../../util/ServiceWorker/ServiceWorkerHelpers";
-import Form from "react-bootstrap/Form";
-import InputGroup from "react-bootstrap/InputGroup";
-import FormControl from "react-bootstrap/FormControl";
-import Button from "react-bootstrap/Button";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSms, faEnvelope } from "@fortawesome/free-solid-svg-icons";
-import "../../util/ServiceWorker/ServiceWorker.js";
-import "./Panel.css";
+import React from 'react';
+import Authentication from '../../util/Authentication/Authentication';
+import Database from '../../util/Database/Database';
+import Form from 'react-bootstrap/Form';
+import Button from 'react-bootstrap/Button';
+import './Panel.css';
 
 export default class App extends React.Component {
   constructor(props) {
     super(props);
     this.Authentication = new Authentication();
-    this.ExternalServices = new ExternalServices();
+    this.Database = new Database();
 
     // if the extension is running on twitch or dev rig, set the shorthand here. otherwise, set to null.
     this.twitch = window.Twitch ? window.Twitch.ext : null;
@@ -24,7 +18,6 @@ export default class App extends React.Component {
       finishedLoading: false,
       isVisible: true,
       playerUsername: undefined,
-      playerTopicArn: undefined,
       games: undefined
     };
 
@@ -33,7 +26,7 @@ export default class App extends React.Component {
   }
 
   contextUpdate(context, delta) {
-    if (delta.includes("theme")) {
+    if (delta.includes('theme')) {
       this.setState(() => {
         return { theme: context.theme };
       });
@@ -53,51 +46,40 @@ export default class App extends React.Component {
       this.twitch.onAuthorized(auth => {
         this.Authentication.setToken(auth.token, auth.userId);
 
-        this.ExternalServices.getPlayerFeedInfo("cyghfer")
-          .then(data => {
-            const [playerUsername, playerTopicArn] = data.Items[0][
-              "G1S"
-            ].S.split("|");
-            const games = [];
+        const categories = this.Database.getFeedCategories('cyghfer');
+        const games = [];
 
-            const rawCategories = data.Items.filter(item =>
-              item.SRT.S.includes("F|")
-            ).map(item => item.SRT.S.split("|")[2]);
+        const rawCategories = categories.map(item => item.SRT.S.split('|')[2]);
 
-            rawCategories.forEach(category => {
-              const [gameTitle, categoryName, gameAbbrev] = category.split("_");
+        rawCategories.forEach(category => {
+          const [gameTitle, categoryName, gameAbbrev] = category.split('_');
 
-              const categoryObj = {
-                name: categoryName,
-                selected: true
-              };
+          const categoryObj = {
+            name: categoryName,
+            selected: true
+          };
 
-              const idx = games.reduce((idx, currGame, currIdx) => {
-                if (currGame.title === gameTitle) idx = currIdx;
-                return idx;
-              }, -1);
+          const idx = games.reduce((idx, currGame, currIdx) => {
+            if (currGame.title === gameTitle) idx = currIdx;
+            return idx;
+          }, -1);
 
-              if (idx === -1) {
-                games.push({
-                  title: gameTitle,
-                  image: `https://catch-the-run-boxart.s3.us-east-2.amazonaws.com/${gameAbbrev}256.png`,
-                  categories: [categoryObj]
-                });
-              } else {
-                games[idx].categories.push(categoryObj);
-              }
+          if (idx === -1) {
+            games.push({
+              title: gameTitle,
+              image: `https://catch-the-run-boxart.s3.us-east-2.amazonaws.com/${gameAbbrev}256.png`,
+              categories: [categoryObj]
             });
+          } else {
+            games[idx].categories.push(categoryObj);
+          }
+        });
 
-            this.setState({
-              playerUsername,
-              playerTopicArn,
-              games,
-              finishedLoading: true
-            });
-          })
-          .catch(err => {
-            console.log("error:", err);
-          });
+        this.setState({
+          playerUsername: 'cyghfer',
+          games,
+          finishedLoading: true
+        });
       });
 
       this.twitch.onVisibilityChanged((isVisible, _c) => {
@@ -112,77 +94,60 @@ export default class App extends React.Component {
 
   componentWillUnmount() {
     if (this.twitch) {
-      this.twitch.unlisten("broadcast", () =>
-        console.log("successfully unlistened")
+      this.twitch.unlisten('broadcast', () =>
+        console.log('successfully unlistened')
       );
     }
   }
 
   toggleCategory(gameTitle, categoryIdx) {
-    this.state.games.filter(game => game.title === gameTitle)[0].categories[
-      categoryIdx
-    ].selected = !this.state.games.filter(game => game.title === gameTitle)[0]
-      .categories[categoryIdx].selected;
+    this.state.games.filter(game => game.title === gameTitle)[0].categories[categoryIdx].selected = !this.state.games.filter(game => game.title === gameTitle)[0].categories[categoryIdx].selected;
     this.setState({ games: this.state.games });
   }
 
   subscribeViewerToPlayer() {
-    navigator.serviceWorker.register("ServiceWorker.js");
+    window.subscriptionDetails = {
+      ProviderName: this.state.playerUsername,
+      Filter: {
+        Type: 'W',
+        Games: 'Super Mario World',
+        Categories: 'Super Mario 64_70 Star'
+      }
+    };
 
-    navigator.serviceWorker.ready
-      .then(registration => {
-        return Promise.all([
-          registration,
-          registration.pushManager.getSubscription()
-        ]);
-      })
-      .then(([registration, existingSubscription]) => {
-        console.log(
-          "registration:",
-          registration,
-          "existingSubscription:",
-          existingSubscription
-        );
-        if (existingSubscription) return existingSubscription;
+    const openedWindow = window.open(
+      'https://catch-the-run-website.cyghfer.now.sh/',
+      'Catch The Run',
+      'height=500,width=500'
+    );
 
-        const vapidPublicKey = ".";
-        const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
-
-        return registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: convertedVapidKey
-        });
-      })
-      .then(subscription => {
-        console.log("stringified subscription:", JSON.stringify(subscription));
-        return this.ExternalServices.sendSubscriptionRequest(
-          this.Authentication.state.user_id,
-          this.state.playerUsername,
-          JSON.stringify(subscription),
-          "WEBPUSH"
-        );
-      })
-      .then(res => {
-        console.log("response:", res);
-      })
-      .catch(err => console.log("err:", err));
+    const poll = setInterval(
+      async () => {
+        if (openedWindow.stringifiedSubscription) {
+          this.Database.saveNewPushSubscription(this.state.playerUsername, openedWindow.stringifiedSubscription);
+          clearInterval(poll);
+          window.close(openedWindow);
+        }
+      },
+      100
+    );
   }
 
   render() {
     console.log(this);
     if (this.state.finishedLoading && this.state.isVisible) {
       return (
-        <div className="panel">
-          <section className="header-section">
+        <div className='panel'>
+          <section className='header-section'>
             <h2>Catch The Run</h2>
             <h3>{this.state.playerUsername}</h3>
           </section>
-          <section className="games-section">
+          <section className='games-section'>
             {this.state.games.map(game => (
-              <div className="game-container" key={game.title}>
-                <img src={game.image} className="game-boxart" />
-                <h5 className="game-title">{game.title}</h5>
-                <div className="category-list">
+              <div className='game-container' key={game.title}>
+                <img src={game.image} className='game-boxart' />
+                <h5 className='game-title'>{game.title}</h5>
+                <div className='category-list'>
                   <Form>
                     <Form.Group>
                       {game.categories.map((category, idx) => (
@@ -190,7 +155,7 @@ export default class App extends React.Component {
                           custom
                           key={category.name}
                           checked={category.selected}
-                          type="checkbox"
+                          type='checkbox'
                           id={`${game.title}-${idx}`}
                           label={category.name}
                           onChange={() => this.toggleCategory(game.title, idx)}
@@ -206,7 +171,7 @@ export default class App extends React.Component {
         </div>
       );
     } else {
-      return <div className="panel"></div>;
+      return <div className='panel'></div>;
     }
   }
 }

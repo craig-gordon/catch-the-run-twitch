@@ -89,13 +89,6 @@ module.exports = (_env, argv) => { // eslint-disable-line no-undef
           options: {
             name: "img/[name].[ext]"
           }
-        },
-        {
-          test: /ServiceWorker.js$/,
-          loader: "file-loader",
-          options: {
-            name: "[name].[ext]"
-          }
         }
       ]
     },
