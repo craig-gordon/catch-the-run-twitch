@@ -60,45 +60,49 @@
     "summary": "Catch The Run is a service allowing viewers to be notified when a speedrunner is on PB pace during a run.",
     "supportEmail": "cyghfer@gmail.com",
     "vendorCode": "",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "viewerSummary": "",
     "viewerUrl": "https://localhost:8080/panel.html",
     "viewerUrls": {
-      "component": "https://localhost:8080/video_component.html",
       "mobile": "https://localhost:8080/mobile.html",
-      "panel": "https://localhost:8080/panel.html"
+      "panel": "https://localhost:8080/panel.html",
+      "component": "https://localhost:8080/video_component.html"
     },
     "views": {
-      "component": {
-        "aspectHeight": 0,
-        "aspectRatioX": 300,
-        "aspectRatioY": 200,
-        "aspectWidth": 0,
-        "autoscale": true,
-        "canLinkExternalContent": false,
-        "scalePixels": 1024,
-        "size": 300,
-        "targetHeight": 4000,
-        "viewerUrl": "https://localhost:8080/video_component.html",
-        "zoom": false,
-        "zoomPixels": 0
-      },
-      "config": {
-        "canLinkExternalContent": false,
-        "viewerUrl": "https://localhost:8080/config.html"
-      },
       "mobile": {
         "viewerUrl": "https://localhost:8080/mobile.html"
       },
       "panel": {
-        "canLinkExternalContent": false,
+        "viewerUrl": "https://localhost:8080/panel.html",
         "height": 496,
         "width": 318,
-        "viewerUrl": "https://localhost:8080/panel.html"
+        "canLinkExternalContent": true
+      },
+      "component": {
+        "viewerUrl": "https://localhost:8080/video_component.html",
+        "aspectWidth": 0,
+        "aspectHeight": 0,
+        "aspectRatioX": 300,
+        "aspectRatioY": 200,
+        "autoscale": true,
+        "scalePixels": 1024,
+        "targetHeight": 4000,
+        "size": 0,
+        "zoom": false,
+        "zoomPixels": 0,
+        "canLinkExternalContent": false
+      },
+      "config": {
+        "viewerUrl": "https://localhost:8080/config.html",
+        "canLinkExternalContent": true
       }
     },
-    "whitelistedConfigUrls": [],
-    "whitelistedPanelUrls": []
+    "whitelistedConfigUrls": [
+      ""
+    ],
+    "whitelistedPanelUrls": [
+      "https://catch-the-run-website.cyghfer.now.sh/"
+    ]
   },
   "name": "Catch The Run",
   "version": 1

@@ -43,13 +43,13 @@ export default class App extends React.Component {
 
   componentDidMount() {
     if (this.twitch) {
-      this.twitch.onAuthorized(auth => {
+      this.twitch.onAuthorized(async auth => {
         this.Authentication.setToken(auth.token, auth.userId);
 
-        const categories = this.Database.getFeedCategories('cyghfer');
+        const dbCategoryItems = (await this.Database.getFeedCategories('cyghfer')).Items;
         const games = [];
 
-        const rawCategories = categories.map(item => item.SRT.S.split('|')[2]);
+        const rawCategories = dbCategoryItems.map(item => item.SRT.split('|')[2]);
 
         rawCategories.forEach(category => {
           const [gameTitle, categoryName, gameAbbrev] = category.split('_');
@@ -94,9 +94,7 @@ export default class App extends React.Component {
 
   componentWillUnmount() {
     if (this.twitch) {
-      this.twitch.unlisten('broadcast', () =>
-        console.log('successfully unlistened')
-      );
+      this.twitch.unlisten('broadcast', () => console.log('successfully unlistened'));
     }
   }
 
@@ -106,31 +104,26 @@ export default class App extends React.Component {
   }
 
   subscribeViewerToPlayer() {
-    window.subscriptionDetails = {
-      ProviderName: this.state.playerUsername,
-      Filter: {
-        Type: 'W',
-        Games: 'Super Mario World',
-        Categories: 'Super Mario 64_70 Star'
-      }
-    };
-
     const openedWindow = window.open(
       'https://catch-the-run-website.cyghfer.now.sh/',
       'Catch The Run',
       'height=500,width=500'
     );
 
-    const poll = setInterval(
-      async () => {
-        if (openedWindow.stringifiedSubscription) {
-          this.Database.saveNewPushSubscription(this.state.playerUsername, openedWindow.stringifiedSubscription);
-          clearInterval(poll);
-          window.close(openedWindow);
+    const handlePushSubscriptionCreation = async e => {
+      if (e.data.loadComplete) openedWindow.postMessage({}, '*');
+      else {
+        openedWindow.close();
+        const { stringifiedSubscription } = e.data;
+        const response = await this.Database.saveNewPushSubscription(this.state.playerUsername, stringifiedSubscription);
+        if (response) {
+          console.log('success!');
+          window.removeEventListener('message', handlePushSubscriptionCreation);
         }
-      },
-      100
-    );
+      }
+    };
+
+    window.addEventListener('message', handlePushSubscriptionCreation);
   }
 
   render() {
@@ -167,7 +160,7 @@ export default class App extends React.Component {
               </div>
             ))}
           </section>
-          <Button onClick={this.subscribeViewerToPlayer}>Subscribe</Button>
+          <Button onClick={this.subscribeViewerToPlayer}>Subscribe for Push Notifications</Button>
         </div>
       );
     } else {
