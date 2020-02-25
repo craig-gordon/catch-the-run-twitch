@@ -139,28 +139,37 @@ export default class App extends React.Component {
             {this.state.games.map(game => (
               <div className='game-container' key={game.title}>
                 <img src={game.image} className='game-boxart' />
-                <h5 className='game-title'>{game.title}</h5>
-                <div className='category-list'>
-                  <Form>
-                    <Form.Group>
+                <Form>
+                  <Form.Group>
+                    <Form.Check
+                      custom
+                      key={game.title}
+                      checked={true}
+                      type='checkbox'
+                      className='game-form-check'
+                      label={game.title}
+                    />
+                    <div className='category-list'>
                       {game.categories.map((category, idx) => (
                         <Form.Check
                           custom
                           key={category.name}
                           checked={category.selected}
                           type='checkbox'
-                          id={`${game.title}-${idx}`}
+                          className='category-form-check'
                           label={category.name}
                           onChange={() => this.toggleCategory(game.title, idx)}
                         />
                       ))}
-                    </Form.Group>
-                  </Form>
-                </div>
+                    </div>
+                  </Form.Group>
+                </Form>
               </div>
             ))}
           </section>
-          <Button onClick={this.subscribeViewerToPlayer}>Subscribe for Push Notifications</Button>
+          <section className='button-section'>
+            <Button onClick={this.subscribeViewerToPlayer}>Subscribe for Push Notifications</Button>
+          </section>
         </div>
       );
     } else {

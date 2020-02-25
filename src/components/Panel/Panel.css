@@ -47,15 +47,47 @@
   width: 64px;
   grid-row: span 2;
   grid-column: span 1;
+  border-radius: 4px;
 }
 
 .category-list .form-group {
   margin: 0;
 }
 
-.custom-control-label {
-  font-size: 14px;
+div.form-group {
+  transform: translateY(-5px);
+  margin-bottom: 0;
+}
+
+.custom-control-label:before,
+.custom-control-label:after {
+  transform: translateY(1px);
+}
+
+.custom-control-label:hover:after {
+  cursor: pointer;
+}
+
+.game-form-check > .custom-control-label {
+  color: rgb(253, 253, 253);
+  font-size: 20px;
+}
+
+.game-form-check > .custom-control-label:before,
+.game-form-check > .custom-control-label:after {
+  height: 18px;
+  width: 18px;
+}
+
+.category-form-check > .custom-control-label {
   color: rgb(228, 228, 228);
+  font-size: 14px;
+  margin-left: 1.5rem;
+}
+
+.category-form-check > .custom-control-label:before,
+.category-form-check > .custom-control-label:after {
+  transform: translateY(-2px);
 }
 
 .input-group-text {
@@ -65,3 +97,21 @@
 .svg-inline--fa {
   font-size: 1.5em;
 }
+
+.button-section {
+  background-color: rgb(78, 77, 74);
+  display: flex;
+  align-items: center;
+}
+
+.btn {
+  margin: 0 16px 16px 16px;
+  padding: 0.5rem;
+  font-weight: bold;
+  font-size: 1rem;
+  width: 100%;
+}
+
+/* .custom-checkbox:hover {
+  cursor: pointer;
+} */
