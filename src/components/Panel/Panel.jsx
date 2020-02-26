@@ -56,7 +56,7 @@ export default class App extends React.Component {
 
           const categoryObj = {
             name: categoryName,
-            selected: true
+            selected: false
           };
 
           const idx = games.reduce((idx, currGame, currIdx) => {
@@ -68,7 +68,7 @@ export default class App extends React.Component {
             games.push({
               title: gameTitle,
               image: `https://catch-the-run-boxart.s3.us-east-2.amazonaws.com/${gameAbbrev}256.png`,
-              selected: true,
+              selected: false,
               categories: [categoryObj]
             });
           } else {
@@ -147,8 +147,7 @@ export default class App extends React.Component {
       return (
         <div className='panel'>
           <section className='header-section'>
-            <h2>Catch The Run</h2>
-            <h3>{this.state.producer}</h3>
+            <h3>My Notifications Feed</h3>
           </section>
           <section className='games-section'>
             {this.state.games.map((game, gIdx) => (
