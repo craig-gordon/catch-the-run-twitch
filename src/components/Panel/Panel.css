@@ -54,6 +54,10 @@
   margin: 0;
 }
 
+.category-list.game-selected {
+  opacity: 0.5;
+}
+
 div.form-group {
   transform: translateY(-5px);
   margin-bottom: 0;
@@ -111,7 +115,3 @@ div.form-group {
   font-size: 1rem;
   width: 100%;
 }
-
-/* .custom-checkbox:hover {
-  cursor: pointer;
-} */

@@ -68,6 +68,7 @@ export default class App extends React.Component {
             games.push({
               title: gameTitle,
               image: `https://catch-the-run-boxart.s3.us-east-2.amazonaws.com/${gameAbbrev}256.png`,
+              selected: true,
               categories: [categoryObj]
             });
           } else {
@@ -98,8 +99,22 @@ export default class App extends React.Component {
     }
   }
 
-  toggleCategory(gameTitle, categoryIdx) {
-    this.state.games.filter(game => game.title === gameTitle)[0].categories[categoryIdx].selected = !this.state.games.filter(game => game.title === gameTitle)[0].categories[categoryIdx].selected;
+  toggleGame(gIdx) {
+    let game = this.state.games[gIdx];
+    game.selected = !game.selected;
+
+    if (game.selected) game.categories.forEach(c => c.selected = true);
+
+    this.setState({ games: this.state.games });
+  }
+
+  toggleCategory(gIdx, cIdx) {
+    let game = this.state.games[gIdx];
+    let category = game.categories[cIdx];
+    category.selected = !category.selected;
+
+    if (!category.selected && game.selected) game.selected = false;
+
     this.setState({ games: this.state.games });
   }
 
@@ -136,7 +151,7 @@ export default class App extends React.Component {
             <h3>{this.state.playerUsername}</h3>
           </section>
           <section className='games-section'>
-            {this.state.games.map(game => (
+            {this.state.games.map((game, gIdx) => (
               <div className='game-container' key={game.title}>
                 <img src={game.image} className='game-boxart' />
                 <Form>
@@ -144,21 +159,24 @@ export default class App extends React.Component {
                     <Form.Check
                       custom
                       key={game.title}
-                      checked={true}
+                      checked={game.selected}
                       type='checkbox'
                       className='game-form-check'
+                      id={game.title}
                       label={game.title}
+                      onChange={() => this.toggleGame(gIdx)}
                     />
-                    <div className='category-list'>
-                      {game.categories.map((category, idx) => (
+                    <div className={game.selected ? 'category-list game-selected' : 'category-list'}>
+                      {game.categories.map((category, cIdx) => (
                         <Form.Check
                           custom
                           key={category.name}
-                          checked={category.selected}
+                          checked={game.selected ? true : category.selected}
                           type='checkbox'
                           className='category-form-check'
+                          id={`${game.title}-${cIdx}`}
                           label={category.name}
-                          onChange={() => this.toggleCategory(game.title, idx)}
+                          onChange={() => this.toggleCategory(gIdx, cIdx)}
                         />
                       ))}
                     </div>
