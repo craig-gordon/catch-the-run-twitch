@@ -17,7 +17,7 @@ export default class App extends React.Component {
     this.state = {
       finishedLoading: false,
       isVisible: true,
-      playerUsername: undefined,
+      producer: undefined,
       games: undefined
     };
 
@@ -77,7 +77,7 @@ export default class App extends React.Component {
         });
 
         this.setState({
-          playerUsername: 'cyghfer',
+          producer: 'cyghfer',
           games,
           finishedLoading: true
         });
@@ -103,7 +103,7 @@ export default class App extends React.Component {
     let game = this.state.games[gIdx];
     game.selected = !game.selected;
 
-    if (game.selected) game.categories.forEach(c => c.selected = true);
+    game.categories.forEach(c => c.selected = game.selected);
 
     this.setState({ games: this.state.games });
   }
@@ -130,7 +130,7 @@ export default class App extends React.Component {
       else {
         openedWindow.close();
         const { stringifiedSubscription } = e.data;
-        const response = await this.Database.saveNewPushSubscription(this.state.playerUsername, stringifiedSubscription);
+        const response = await this.Database.saveNewPushSubscription(this.state.producer, stringifiedSubscription);
         if (response) {
           console.log('success!');
           window.removeEventListener('message', handlePushSubscriptionCreation);
@@ -148,7 +148,7 @@ export default class App extends React.Component {
         <div className='panel'>
           <section className='header-section'>
             <h2>Catch The Run</h2>
-            <h3>{this.state.playerUsername}</h3>
+            <h3>{this.state.producer}</h3>
           </section>
           <section className='games-section'>
             {this.state.games.map((game, gIdx) => (
@@ -161,7 +161,7 @@ export default class App extends React.Component {
                       key={game.title}
                       checked={game.selected}
                       type='checkbox'
-                      className='game-form-check'
+                      className='game-line'
                       id={game.title}
                       label={game.title}
                       onChange={() => this.toggleGame(gIdx)}
@@ -173,7 +173,7 @@ export default class App extends React.Component {
                           key={category.name}
                           checked={game.selected ? true : category.selected}
                           type='checkbox'
-                          className='category-form-check'
+                          className='category-line'
                           id={`${game.title}-${cIdx}`}
                           label={category.name}
                           onChange={() => this.toggleCategory(gIdx, cIdx)}

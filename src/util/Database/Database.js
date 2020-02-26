@@ -10,12 +10,12 @@ export default class Database {
     });
   }
 
-  getFeedCategories(playerTwitchUsername) {
+  getFeedCategories(producer) {
     const params = {
       TableName: 'Main',
       KeyConditionExpression: 'PRT = :PRT AND begins_with(SRT, :SRT)',
       ExpressionAttributeValues: {
-        ':PRT': playerTwitchUsername,
+        ':PRT': producer,
         ':SRT': 'F|CAT'
       }
     };
@@ -23,13 +23,13 @@ export default class Database {
     return this.dynamoClient.query(params).promise();
   }
 
-  saveNewPushSubscription(playerTwitchUsername, stringifiedSubscription, filter = null) {
+  saveNewPushSubscription(producer, stringifiedSubscription, filter = null) {
     const params = {
       TableName: 'Main',
       Item: {
-        PRT: `${playerTwitchUsername}|PUSH`,
+        PRT: `${producer}|PUSH`,
         SRT: `F|SUB|${stringifiedSubscription}`,
-        G1S: playerTwitchUsername,
+        G1S: producer,
         Filter: filter
       }
     };
