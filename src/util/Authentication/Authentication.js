@@ -5,12 +5,13 @@ const jwt = require("jsonwebtoken");
  * This is not meant to be a source of truth. Use only for presentational purposes.
  */
 export default class Authentication {
-  constructor(token, opaque_id) {
+  constructor(token, opaque_id, broadcasterId) {
     this.state = {
       token,
       opaque_id,
       user_id: false,
       isMod: false,
+      broadcasterId,
       role: ""
     };
   }
