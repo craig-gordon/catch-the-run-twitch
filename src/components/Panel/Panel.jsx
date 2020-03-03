@@ -6,7 +6,7 @@ import Button from 'react-bootstrap/Button';
 import './Panel.css';
 
 // eslint-disable-next-line react/display-name
-const App = props => {
+const Panel = props => {
   const [theme, setTheme] = useState(undefined);
   const [finishedLoading, setFinishedLoading] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
@@ -174,4 +174,4 @@ const App = props => {
   }
 };
 
-export default App;
+export default Panel;

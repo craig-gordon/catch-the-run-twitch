@@ -25,6 +25,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@testing-library/jest-dom": "^5.1.1",
+    "@testing-library/react": "^9.4.1",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
     "babel-eslint": "^10.0.3",
@@ -34,8 +36,6 @@
     "babel-preset-react": "^6.24.1",
     "clean-webpack-plugin": "^1.0.1",
     "css-loader": "^0.28.11",
-    "enzyme": "^3.4.1",
-    "enzyme-adapter-react-16": "^1.2.0",
     "eslint": "^6.4.0",
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-node": "^10.0.0",
@@ -78,10 +78,10 @@
   },
   "jest": {
     "setupFiles": [
-      "<rootDir>/test/jestsetup.js"
+      "<rootDir>/jestsetup.js"
     ],
     "transform": {
-      "^.+\\.js?$": "babel-jest"
+      "^.+\\.jsx?$": "babel-jest"
     },
     "moduleNameMapper": {
       "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
