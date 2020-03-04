@@ -10,6 +10,20 @@ export default class Database {
     });
   }
 
+  getUserRecordsByTwitchId(twitchId) {
+    const params = {
+      TableName: 'Main',
+      IndexName: 'TwitchIdIndex',
+      KeyConditionExpression: 'TwitchId = :TwitchId',
+      ExpressionAttributeValues: {
+        ':TwitchId': twitchId
+      }
+    };
+
+    console.log('params:', params);
+    return this.dynamoClient.query(params).promise();
+  }
+
   getFeedCategories(producer) {
     const params = {
       TableName: 'Main',

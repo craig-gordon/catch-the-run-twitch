@@ -7,24 +7,29 @@ import './Panel.css';
 
 // eslint-disable-next-line react/display-name
 const Panel = props => {
-  const [theme, setTheme] = useState(undefined);
-  const [finishedLoading, setFinishedLoading] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
-  const [producer, setProducer] = useState('');
-  const [games, setGames] = useState([]);
+  const [_theme, setTheme] = useState(undefined);
+  const [_finishedLoading, setFinishedLoading] = useState(false);
+  const [_isVisible, setIsVisible] = useState(true);
+  const [_producer, setProducer] = useState('');
+  const [_games, setGames] = useState([]);
 
   const twitch = window.Twitch ? window.Twitch.ext : null;
   const dbClient = new Database();
   let authContext = null;
 
   useEffect(() => {
-    console.log('useEffect');
-    
     const handleVisibilityChanged = (isVisible) => setIsVisible(isVisible);
 
     const handleContextUpdate = (context, delta) => {
       if (delta.includes('theme')) {
         setTheme(context.theme);
+      }
+    }
+
+    const getProducerTwitchUsername = async twitchId => {
+      const items = (await dbClient.getUserRecordsByTwitchId(twitchId.toString())).Items;
+      if (items.length > 0) {
+        return items[0].PRT;
       }
     }
 
@@ -64,12 +69,13 @@ const Panel = props => {
     if (twitch) {
       twitch.onAuthorized(async auth => {
         authContext = new Authentication(auth.token, auth.userId, auth.channelId);
-        setProducer('cyghfer');
+        const producer = await getProducerTwitchUsername(authContext.state.broadcasterId);
+        setProducer(producer);
         setFinishedLoading(true);
 
-        const categoryItems = (await dbClient.getFeedCategories('cyghfer')).Items;
-        const _games = processProducerFeed(categoryItems);
-        setGames(_games);
+        const categoryItems = (await dbClient.getFeedCategories(producer)).Items;
+        const games = processProducerFeed(categoryItems);
+        setGames(games);
 
         twitch.onVisibilityChanged((isVisible, _c) => handleVisibilityChanged(isVisible));
         twitch.onContext((context, delta) => handleContextUpdate(context, delta));
@@ -80,24 +86,24 @@ const Panel = props => {
   }, []);
 
   const toggleGame = gIdx => {
-    const gamesNext = [...games];
-    let game = gamesNext[gIdx];
+    const games = [..._games];
+    let game = games[gIdx];
     game.selected = !game.selected;
 
     game.categories.forEach(c => c.selected = game.selected);
 
-    setGames(gamesNext);
+    setGames(games);
   }
 
   const toggleCategory = (gIdx, cIdx) => {
-    const gamesNext = [...games];
-    let game = gamesNext[gIdx];
+    const games = [..._games];
+    let game = games[gIdx];
     let category = game.categories[cIdx];
     category.selected = !category.selected;
 
     if (!category.selected && game.selected) game.selected = false;
 
-    setGames(gamesNext);
+    setGames(games);
   }
 
   const subscribeViewerToPlayer = () => {
@@ -112,7 +118,7 @@ const Panel = props => {
       else {
         openedWindow.close();
         const { stringifiedSubscription } = e.data;
-        const response = await Database.saveNewPushSubscription(producer, stringifiedSubscription);
+        const response = await Database.saveNewPushSubscription(_producer, stringifiedSubscription);
         if (response) {
           console.log('success!');
           window.removeEventListener('message', handlePushSubscriptionCreation);
@@ -123,14 +129,14 @@ const Panel = props => {
     window.addEventListener('message', handlePushSubscriptionCreation);
   }
 
-  if (finishedLoading && isVisible) {
+  if (_finishedLoading && _isVisible) {
     return (
       <div className='panel'>
         <section className='header-section'>
           <h3>My Notifications Feed</h3>
         </section>
         <section className='games-section'>
-          {games.map((game, gIdx) => (
+          {_games.map((game, gIdx) => (
             <div className='game-container' key={game.title}>
               <img src={game.image} className='game-boxart' />
               <Form>
