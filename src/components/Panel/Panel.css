@@ -30,6 +30,7 @@
   grid-template-columns: auto 1fr;
   grid-column-gap: 0.75rem;
   padding: 1rem;
+  position: relative;
 }
 
 .game-container:nth-child(odd) {
@@ -138,4 +139,23 @@ div.form-group {
   font-size: 1rem;
   width: 100%;
   border-radius: 0;
+}
+
+.expand-btn {
+  position: absolute;
+  padding: 0;
+  bottom: 0;
+  left: calc(50% - 13px);
+  height: 12px;
+  width: 26px;
+  line-height: 0;
+  border: 1px solid rgb(0, 70, 146);
+}
+
+.expand-btn-text {
+  transform: translateY(-5px);
+}
+
+.hidden {
+  display: none;
 }

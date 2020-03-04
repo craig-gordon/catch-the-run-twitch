@@ -20,7 +20,6 @@ export default class Database {
       }
     };
 
-    console.log('params:', params);
     return this.dynamoClient.query(params).promise();
   }
 

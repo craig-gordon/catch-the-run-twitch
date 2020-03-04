@@ -5,7 +5,6 @@ import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import './Panel.css';
 
-// eslint-disable-next-line react/display-name
 const Panel = props => {
   const [_theme, setTheme] = useState(undefined);
   const [_finishedLoading, setFinishedLoading] = useState(false);
@@ -56,6 +55,7 @@ const Panel = props => {
             title: gameTitle,
             image: `https://catch-the-run-boxart.s3.us-east-2.amazonaws.com/${gameAbbrev}256.png`,
             selected: false,
+            expanded: false,
             categories: [categoryObj]
           });
         } else {
@@ -85,7 +85,7 @@ const Panel = props => {
     }
   }, []);
 
-  const toggleGame = gIdx => {
+  const toggleGameSelected = gIdx => {
     const games = [..._games];
     let game = games[gIdx];
     game.selected = !game.selected;
@@ -95,7 +95,15 @@ const Panel = props => {
     setGames(games);
   }
 
-  const toggleCategory = (gIdx, cIdx) => {
+  const toggleGameExpanded = gIdx => {
+    const games = [..._games];
+    let game = games[gIdx];
+    game.expanded = !game.expanded;
+
+    setGames(games);
+  }
+
+  const toggleCategorySelected = (gIdx, cIdx) => {
     const games = [..._games];
     let game = games[gIdx];
     let category = game.categories[cIdx];
@@ -130,6 +138,7 @@ const Panel = props => {
   }
 
   if (_finishedLoading && _isVisible) {
+
     return (
       <div className='panel'>
         <section className='header-section'>
@@ -149,10 +158,10 @@ const Panel = props => {
                     className='game-line'
                     id={game.title}
                     label={game.title}
-                    onChange={() => toggleGame(gIdx)}
+                    onChange={() => toggleGameSelected(gIdx)}
                   />
                   <div className={game.selected ? 'category-list game-selected' : 'category-list'}>
-                    {game.categories.map((category, cIdx) => (
+                    {getCategoriesToRender(game).map((category, cIdx) => (
                       <Form.Check
                         custom
                         key={category.name}
@@ -161,12 +170,19 @@ const Panel = props => {
                         className='category-line'
                         id={`${game.title}-${cIdx}`}
                         label={category.name}
-                        onChange={() => toggleCategory(gIdx, cIdx)}
+                        onChange={() => toggleCategorySelected(gIdx, cIdx)}
                       />
                     ))}
                   </div>
                 </Form.Group>
               </Form>
+              <Button
+                variant='primary'
+                className={game.categories.length > 3 ? 'expand-btn' : 'expand-btn hidden'}
+                onClick={() => toggleGameExpanded(gIdx)}
+              >
+                <span className='expand-btn-text'>...</span>
+              </Button>
             </div>
           ))}
         </section>
@@ -179,5 +195,13 @@ const Panel = props => {
     return <div className='panel'></div>;
   }
 };
+
+const getCategoriesToRender = game => {
+  if (game.categories.length <= 3) {
+    return game.categories;
+  } else {
+    return game.expanded ? game.categories : game.categories.slice(0, 3);
+  }
+}
 
 export default Panel;
