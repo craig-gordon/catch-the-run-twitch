@@ -181,7 +181,7 @@ const Panel = props => {
                 className={game.categories.length > 3 ? 'expand-btn' : 'expand-btn hidden'}
                 onClick={() => toggleGameExpanded(gIdx)}
               >
-                <span className='expand-btn-text'>...</span>
+                <div className='expand-btn-text'>...</div>
               </Button>
             </div>
           ))}
