@@ -67,6 +67,28 @@ export default class Database {
     return this.dynamoClient.put(params).promise();
   }
 
+  async updatePushSubscription(viewerId, producer, includedGames, includedCategories) {
+    const getParams = {
+      TableName: 'Main',
+      Key: {
+        PRT: `${producer}|P`,
+        SRT: `F|SUB|${viewerId}`
+      }
+    };
+
+    const sub = (await this.dynamoClient.get(getParams).promise()).Item;
+
+    sub.IncludedGames = this.dynamoClient.createSet(includedGames);
+    sub.IncludedCategories = this.dynamoClient.createSet(includedCategories);
+
+    const putParams = {
+      TableName: 'Main',
+      Item: sub
+    };
+
+    return this.dynamoClient.put(putParams).promise();
+  }
+
   deletePushSubscription(viewerId, producer) {
     const params = {
       TableName: 'Main',

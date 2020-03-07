@@ -142,6 +142,8 @@ const Panel = props => {
     game.categories.forEach(c => c.selected = game.selected);
 
     setGames(games);
+
+    if (_isSaveButtonDisabled) setIsSaveButtonDisabled(false);
   };
 
   const toggleGameExpanded = gIdx => {
@@ -150,7 +152,6 @@ const Panel = props => {
     game.expanded = !game.expanded;
 
     setGames(games);
-    if (_isSaveButtonDisabled) setIsSaveButtonDisabled(false);
   };
 
   const toggleCategorySelected = (gIdx, cIdx) => {
@@ -162,6 +163,7 @@ const Panel = props => {
     if (!category.selected && game.selected) game.selected = false;
 
     setGames(games);
+    
     if (_isSaveButtonDisabled) setIsSaveButtonDisabled(false);
   };
 
@@ -180,7 +182,7 @@ const Panel = props => {
         const [includedGames, includedCategories] = formatSelectedItemsForDatabase(_games);
         const response = await dbClient.addPushSubscription(_authContext.state.user_id, _producer, includedGames, includedCategories, stringifiedSubscription);
         if (response) {
-          console.log('success!');
+          console.log('push sub created');
           window.removeEventListener('message', handlePushSubscriptionCreation);
         }
       }
@@ -192,7 +194,9 @@ const Panel = props => {
   const updatePushSubscription = async () => {
     const [includedGames, includedCategories] = formatSelectedItemsForDatabase(_games);
     const response = await dbClient.updatePushSubscription(_authContext.state.user_id, _producer, includedGames, includedCategories);
-    // TODO: fill this logic out
+    if (response) {
+      console.log('push sub updated');
+    }
   };
 
   const deletePushSubscription = async () => {
