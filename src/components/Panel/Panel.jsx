@@ -163,7 +163,7 @@ const Panel = props => {
     if (!category.selected && game.selected) game.selected = false;
 
     setGames(games);
-    
+
     if (_isSaveButtonDisabled) setIsSaveButtonDisabled(false);
   };
 
@@ -200,7 +200,32 @@ const Panel = props => {
   };
 
   const deletePushSubscription = async () => {
-    // TODO: unsubscribe https://developer.mozilla.org/en-US/docs/Web/API/PushSubscription
+    // const openedWindow = window.open(
+    //   'https://catch-the-run-website.cyghfer.now.sh/',
+    //   'Catch The Run',
+    //   'height=500,width=500'
+    // );
+
+    // const handlePushSubscriptionDeletion = async e => {
+    //   if (e.data.loadComplete) openedWindow.postMessage({}, '*');
+    //   else {
+    //     openedWindow.close();
+    //     const { wasSubDeleted } = e.data;
+
+    //     if (wasSubDeleted) {
+    //       const response = await dbClient.deletePushSubscription(_authContext.state.user_id, _producer);
+    //       if (response) {
+    //         console.log('push sub deleted');
+    //         window.removeEventListener('message', handlePushSubscriptionDeletion);
+    //       }
+    //     } else {
+    //       console.log('error deleting push sub');
+    //     }
+    //   }
+    // };
+
+    // window.addEventListener('message', handlePushSubscriptionDeletion);
+
     await dbClient.deletePushSubscription(_authContext.state.user_id, _producer);
   };
 
@@ -245,11 +270,12 @@ const Panel = props => {
               </Form>
               <Button
                 variant='primary'
-                className={game.categories.length > 3 ? 'expand-btn' : 'expand-btn hidden'}
+                className={getExpandButtonClassName(game)}
                 onClick={() => toggleGameExpanded(gIdx)}
               >
-                <div className='expand-btn-text'>...</div>
+                <div className='expand-btn-text'>&#9660;</div>
               </Button>
+              <div className={getShadowElementClassName(game)} />
             </div>
           ))}
         </section>
@@ -272,6 +298,18 @@ const Panel = props => {
   } else {
     return <div className='panel'></div>;
   }
+};
+
+const getExpandButtonClassName = game => {
+  if (game.categories.length > 3) {
+    return game.expanded ? 'expand-btn expanded' : 'expand-btn';
+  } else {
+    return 'expand-btn hidden';
+  }
+};
+
+const getShadowElementClassName = game => {
+  return !game.expanded && game.categories.length > 3 ? 'shadow' : 'shadow hidden';
 };
 
 const getCategoriesToRender = game => {
