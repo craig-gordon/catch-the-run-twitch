@@ -10,6 +10,7 @@ const Panel = props => {
   const [_finishedLoading, setFinishedLoading] = useState(false);
   const [_isVisible, setIsVisible] = useState(true);
   const [_producer, setProducer] = useState('');
+  const [_consumer, setConsumer] = useState('');
   const [_games, setGames] = useState([]);
 
   const twitch = window.Twitch ? window.Twitch.ext : null;
@@ -25,19 +26,32 @@ const Panel = props => {
       }
     }
 
-    const getProducerTwitchUsername = async twitchId => {
+    const getTwitchUsername = async twitchId => {
       const items = (await dbClient.getUserRecordsByTwitchId(twitchId.toString())).Items;
-      if (items.length > 0) {
-        return items[0].PRT;
+      return items.length > 0 ? items[0].PRT : null;
+    }
+
+    const getExistingPushSubscription = async (consumer, producer) => {
+      const sub = (await dbClient.getPushSubscription(consumer, producer)).Item;
+      return sub || null;
+    }
+
+    const findCategory = (games, categoryName) => {
+      for (let i = 0; i < games.length; i++) {
+        for (let j = 0; j < games[i].categories.length; j++) {
+          const c = games[i].categories[j];
+          if (categoryName === c) {
+            return c;
+          }
+        }
       }
+      return null;
     }
 
     const processProducerFeed = categories => {
       const games = [];
-    
-      const rawCategories = categories.map(item => item.SRT.split('|')[2]);
-    
-      rawCategories.forEach(category => {
+       
+      categories.forEach(category => {
         const [gameTitle, categoryName, gameAbbrev] = category.split('_');
     
         const categoryObj = {
@@ -53,6 +67,7 @@ const Panel = props => {
         if (idx === -1) {
           games.push({
             title: gameTitle,
+            abbrev: gameAbbrev,
             image: `https://catch-the-run-boxart.s3.us-east-2.amazonaws.com/${gameAbbrev}256.png`,
             selected: false,
             expanded: false,
@@ -66,16 +81,43 @@ const Panel = props => {
       return games;
     }
 
+    const setSelected = (sub, games, categories) => {
+      if (sub.IncludedGames) {
+        sub.IncludedGames.forEach(ig => {
+          const game = games.filter(g => g.title === ig)[0];
+          if (game) game.selected = true;
+        });
+      }
+
+      if (sub.IncludedCategories) {
+        sub.IncludedCategories.forEach(ic => {
+          const category = categories.filter(c => c.slice(0, c.lastIndexOf('_')) === ic)[0];
+          if (category) findCategory(category).selected = true;
+        })
+      }
+    }
+
     if (twitch) {
       twitch.onAuthorized(async auth => {
         authContext = new Authentication(auth.token, auth.userId, auth.channelId);
-        const producer = await getProducerTwitchUsername(authContext.state.broadcasterId);
-        setProducer(producer);
-        setFinishedLoading(true);
 
-        const categoryItems = (await dbClient.getFeedCategories(producer)).Items;
-        const games = processProducerFeed(categoryItems);
+        const consumer = await getTwitchUsername(authContext.state.user_id);
+        const producer = await getTwitchUsername(authContext.state.broadcasterId);
+
+        setProducer(producer);
+
+        const categories = (await dbClient.getFeedCategories(producer)).Items.map(item => item.SRT.split('|')[2]);
+        const games = processProducerFeed(categories);
+
+        setConsumer(consumer);
+
+        if (_consumer !== null) {
+          const sub = await getExistingPushSubscription(consumer, producer);
+          if (sub) setSelected(sub, games, categories);
+        }
+
         setGames(games);
+        setFinishedLoading(true);
 
         twitch.onVisibilityChanged((isVisible, _c) => handleVisibilityChanged(isVisible));
         twitch.onContext((context, delta) => handleContextUpdate(context, delta));
@@ -126,7 +168,8 @@ const Panel = props => {
       else {
         openedWindow.close();
         const { stringifiedSubscription } = e.data;
-        const response = await Database.saveNewPushSubscription(_producer, stringifiedSubscription);
+        const [includedGames, includedCategories] = formatSelectedItemsForDatabase(_games);
+        const response = await dbClient.addPushSubscription(_producer, includedGames, includedCategories, stringifiedSubscription);
         if (response) {
           console.log('success!');
           window.removeEventListener('message', handlePushSubscriptionCreation);
@@ -202,6 +245,22 @@ const getCategoriesToRender = game => {
   } else {
     return game.expanded ? game.categories : game.categories.slice(0, 3);
   }
-}
+};
+
+const formatSelectedItemsForDatabase = games => {
+  const includedItems = [[], []];
+
+  games.forEach(game => {
+    if (game.selected) includedItems[0].push(game.title);
+
+    game.categories.forEach(category => {
+      if (category.selected && !game.selected) {
+        includedItems[1].push(`${game.title}_${category.name}_${game.abbrev}`);
+      }
+    });
+  });
+
+  return includedItems;
+};
 
 export default Panel;

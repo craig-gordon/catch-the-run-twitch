@@ -36,14 +36,30 @@ export default class Database {
     return this.dynamoClient.query(params).promise();
   }
 
-  saveNewPushSubscription(producer, stringifiedSubscription, filter = null) {
+  getPushSubscription(consumer, producer) {
+    const params = {
+      TableName: 'Main',
+      Key: {
+        PRT: `${producer}|P`,
+        SRT: `F|SUB|${consumer}`
+      }
+    };
+
+    return this.dynamoClient.get(params).promise();
+  }
+
+  addPushSubscription(producer, includedGames, includedCategories, stringifiedSubscription) {
+    const gamesSet = this.dynamoClient.createSet(includedGames);
+    const categoriesSet = this.dynamoClient.createSet(includedCategories);
+    
     const params = {
       TableName: 'Main',
       Item: {
         PRT: `${producer}|PUSH`,
         SRT: `F|SUB|${stringifiedSubscription}`,
-        G1S: producer,
-        Filter: filter
+        GS: producer,
+        IncludedGames: gamesSet,
+        IncludedCategories: categoriesSet
       }
     };
 
