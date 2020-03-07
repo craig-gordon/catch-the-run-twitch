@@ -6,14 +6,8 @@ const jwt = require("jsonwebtoken");
  */
 export default class Authentication {
   constructor(token, opaque_id, broadcasterId) {
-    this.state = {
-      token,
-      opaque_id,
-      user_id: false,
-      isMod: false,
-      broadcasterId,
-      role: ""
-    };
+    this.setToken(token, opaque_id);
+    this.state.broadcasterId = broadcasterId;
   }
 
   isLoggedIn() {

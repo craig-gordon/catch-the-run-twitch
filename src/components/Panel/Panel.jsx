@@ -11,11 +11,13 @@ const Panel = props => {
   const [_isVisible, setIsVisible] = useState(true);
   const [_producer, setProducer] = useState('');
   const [_consumer, setConsumer] = useState('');
+  const [_isSubscribed, setIsSubscribed] = useState(false);
   const [_games, setGames] = useState([]);
+  const [_authContext, setAuthContext] = useState(undefined);
+  const [_isSaveButtonDisabled, setIsSaveButtonDisabled] = useState(true);
 
   const twitch = window.Twitch ? window.Twitch.ext : null;
   const dbClient = new Database();
-  let authContext = null;
 
   useEffect(() => {
     const handleVisibilityChanged = (isVisible) => setIsVisible(isVisible);
@@ -24,29 +26,30 @@ const Panel = props => {
       if (delta.includes('theme')) {
         setTheme(context.theme);
       }
-    }
+    };
 
     const getTwitchUsername = async twitchId => {
       const items = (await dbClient.getUserRecordsByTwitchId(twitchId.toString())).Items;
       return items.length > 0 ? items[0].PRT : null;
-    }
+    };
 
     const getExistingPushSubscription = async (consumer, producer) => {
       const sub = (await dbClient.getPushSubscription(consumer, producer)).Item;
       return sub || null;
-    }
+    };
 
-    const findCategory = (games, categoryName) => {
+    const findCategory = (games, category) => {
       for (let i = 0; i < games.length; i++) {
         for (let j = 0; j < games[i].categories.length; j++) {
           const c = games[i].categories[j];
-          if (categoryName === c) {
+          const [gameStr, categoryStr, _] = category.split('_');
+          if (gameStr === games[i].title && categoryStr === c.name) {
             return c;
           }
         }
       }
       return null;
-    }
+    };
 
     const processProducerFeed = categories => {
       const games = [];
@@ -79,27 +82,28 @@ const Panel = props => {
       });
   
       return games;
-    }
+    };
 
     const setSelected = (sub, games, categories) => {
       if (sub.IncludedGames) {
-        sub.IncludedGames.forEach(ig => {
+        sub.IncludedGames.values.forEach(ig => {
           const game = games.filter(g => g.title === ig)[0];
           if (game) game.selected = true;
         });
       }
 
       if (sub.IncludedCategories) {
-        sub.IncludedCategories.forEach(ic => {
-          const category = categories.filter(c => c.slice(0, c.lastIndexOf('_')) === ic)[0];
-          if (category) findCategory(category).selected = true;
+        sub.IncludedCategories.values.forEach(ic => {
+          const category = categories.filter(c => c === ic)[0];
+          if (category) findCategory(games, category).selected = true;
         })
       }
-    }
+    };
 
     if (twitch) {
       twitch.onAuthorized(async auth => {
-        authContext = new Authentication(auth.token, auth.userId, auth.channelId);
+        const authContext = new Authentication(auth.token, auth.userId, auth.channelId);
+        setAuthContext(authContext);
 
         const consumer = await getTwitchUsername(authContext.state.user_id);
         const producer = await getTwitchUsername(authContext.state.broadcasterId);
@@ -112,8 +116,11 @@ const Panel = props => {
         setConsumer(consumer);
 
         if (_consumer !== null) {
-          const sub = await getExistingPushSubscription(consumer, producer);
-          if (sub) setSelected(sub, games, categories);
+          const sub = await getExistingPushSubscription(authContext.state.user_id, producer);
+          if (sub) {
+            setSelected(sub, games, categories);
+            setIsSubscribed(true);
+          }
         }
 
         setGames(games);
@@ -135,7 +142,7 @@ const Panel = props => {
     game.categories.forEach(c => c.selected = game.selected);
 
     setGames(games);
-  }
+  };
 
   const toggleGameExpanded = gIdx => {
     const games = [..._games];
@@ -143,7 +150,8 @@ const Panel = props => {
     game.expanded = !game.expanded;
 
     setGames(games);
-  }
+    if (_isSaveButtonDisabled) setIsSaveButtonDisabled(false);
+  };
 
   const toggleCategorySelected = (gIdx, cIdx) => {
     const games = [..._games];
@@ -154,9 +162,10 @@ const Panel = props => {
     if (!category.selected && game.selected) game.selected = false;
 
     setGames(games);
-  }
+    if (_isSaveButtonDisabled) setIsSaveButtonDisabled(false);
+  };
 
-  const subscribeViewerToPlayer = () => {
+  const createPushSubscription = () => {
     const openedWindow = window.open(
       'https://catch-the-run-website.cyghfer.now.sh/',
       'Catch The Run',
@@ -169,7 +178,7 @@ const Panel = props => {
         openedWindow.close();
         const { stringifiedSubscription } = e.data;
         const [includedGames, includedCategories] = formatSelectedItemsForDatabase(_games);
-        const response = await dbClient.addPushSubscription(_producer, includedGames, includedCategories, stringifiedSubscription);
+        const response = await dbClient.addPushSubscription(_authContext.state.user_id, _producer, includedGames, includedCategories, stringifiedSubscription);
         if (response) {
           console.log('success!');
           window.removeEventListener('message', handlePushSubscriptionCreation);
@@ -178,7 +187,18 @@ const Panel = props => {
     };
 
     window.addEventListener('message', handlePushSubscriptionCreation);
-  }
+  };
+
+  const updatePushSubscription = async () => {
+    const [includedGames, includedCategories] = formatSelectedItemsForDatabase(_games);
+    const response = await dbClient.updatePushSubscription(_authContext.state.user_id, _producer, includedGames, includedCategories);
+    // TODO: fill this logic out
+  };
+
+  const deletePushSubscription = async () => {
+    // TODO: unsubscribe https://developer.mozilla.org/en-US/docs/Web/API/PushSubscription
+    await dbClient.deletePushSubscription(_authContext.state.user_id, _producer);
+  };
 
   if (_finishedLoading && _isVisible) {
 
@@ -230,7 +250,18 @@ const Panel = props => {
           ))}
         </section>
         <section className='button-section'>
-          <Button onClick={subscribeViewerToPlayer}>Subscribe for Push Notifications</Button>
+          {
+            _isSubscribed
+              ? (
+                <div className='btn-row'>
+                  <Button variant='primary' disabled={_isSaveButtonDisabled} onClick={updatePushSubscription}>Modify Sub</Button>
+                  <Button variant='danger' onClick={deletePushSubscription}>Unsubscribe</Button>
+                </div>
+              )
+              : (
+                <Button variant='success' disabled={_isSaveButtonDisabled} onClick={createPushSubscription}>Subscribe for Push Notifications</Button>
+              )
+          }
         </section>
       </div>
     );

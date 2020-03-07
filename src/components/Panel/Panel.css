@@ -175,6 +175,16 @@ div.form-group {
   transform: translateY(-4px);
 }
 
+.btn-row {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+.btn-row > button {
+  flex-basis: 50%;
+}
+
 .hidden {
   display: none;
 }
